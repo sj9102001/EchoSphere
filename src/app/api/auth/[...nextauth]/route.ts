@@ -14,31 +14,30 @@ const handler = NextAuth({
             password: { label: "Password", type: "password" }
         },
         async authorize(credentials) {
-            if(!credentials) return null;
-
-            const user = await prisma.user.findUnique({
-                where: {
-                    email: credentials.email
-                }
-            })
-
-            if(user) {
-                const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password);
-                if(isPasswordCorrect) {
-                    return {
-                        username: user.name,
-                        email: user.email,
-                        id: user.id.toString()
-                    }
-                }else{
-                    return null;
-                }
-            }else{
-                return null;
+            if (!credentials) {
+                throw new Error("Missing credentials");
             }
-          }
-       }) 
-    ],
+            const user = await prisma.user.findUnique({
+                where: { email: credentials.email },
+            });
+            if (!user) {
+                throw new Error("No user found with the provided email");
+            }
+
+            const isPasswordCorrect = await bcrypt.compare(
+                credentials.password,
+                user.password
+            );
+            if (!isPasswordCorrect) {
+                throw new Error("Invalid password");
+            }
+            return {
+                id: user.id.toString(),
+                name: user.name,
+                email: user.email,
+            };
+        }
+    })],
     secret: process.env.SECRET_KEY,
     callbacks: {
         async jwt({ token, user }) {
@@ -59,7 +58,7 @@ const handler = NextAuth({
             }
             return session;
         }
-    }
+    },
 })
 
 export { handler as GET, handler as POST }

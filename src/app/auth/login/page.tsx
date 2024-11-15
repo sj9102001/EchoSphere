@@ -34,15 +34,12 @@ const LoginPage = () => {
   const onSubmit = async (data: LoginFormValues) => {
     try {
       const result = await signIn("credentials", {
-        redirect: false,
         email: data.email,
         password: data.password,
         callbackUrl: '/home'
       });
 
       if (result && result.ok) {
-        toast.success("Successfully logged in!");
-        router.replace('/home');  
       } else if (result && result.error) {
         throw new Error(result.error);
       } else {
