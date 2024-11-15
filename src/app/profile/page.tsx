@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Users, Heart, MessageCircle } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -12,10 +13,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Users, Heart, MessageCircle } from 'lucide-react'
 
-// Mock data for the current user and friends
+// Mock data remains the same as your original code
 const currentUser = {
   username: 'johndoe',
   bio: 'I love coding and building awesome things!',
@@ -28,14 +27,10 @@ const friends = [
   { id: 3, name: 'Sarah Williams', avatar: 'https://github.com/shadcn.png' },
 ]
 
-// Mock data for user posts
 const userPosts = [
   { id: 1, imageUrl: '/placeholder.svg?height=300&width=300', likes: 15, comments: 5 },
   { id: 2, imageUrl: '/placeholder.svg?height=300&width=300', likes: 20, comments: 8 },
   { id: 3, imageUrl: '/placeholder.svg?height=300&width=300', likes: 10, comments: 3 },
-  { id: 4, imageUrl: '/placeholder.svg?height=300&width=300', likes: 25, comments: 12 },
-  { id: 5, imageUrl: '/placeholder.svg?height=300&width=300', likes: 18, comments: 7 },
-  { id: 6, imageUrl: '/placeholder.svg?height=300&width=300', likes: 30, comments: 15 },
 ]
 
 export default function ProfilePage() {
@@ -44,131 +39,106 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
 
   const handleSave = () => {
-    // Here you would typically send the updated data to your backend
-    console.log('Saving profile:', { username, bio })
     setIsEditing(false)
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <Card className="max-w-2xl mx-auto mb-8">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Profile</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-4 mb-6">
-            <Avatar className="w-20 h-20">
+    <div className="flex flex-col gap-4 p-4 min-h-screen bg-background">
+      {/* Profile Section */}
+      <div className="w-full max-w-3xl   mx-auto space-y-4">
+        <div className="rounded-xl bg-card p-6 space-y-6">
+          <div className="flex flex-col items-center gap-4">
+            <Avatar className="w-24 h-24">
               <AvatarImage src={currentUser.avatar} alt={username} />
               <AvatarFallback>{username[0].toUpperCase()}</AvatarFallback>
             </Avatar>
-            <div>
-              <h2 className="text-2xl font-bold">{username}</h2>
-              <p className="text-muted-foreground">{bio}</p>
+            <div className="text-center">
+              <h1 className="text-2xl text-white font-bold">{username}</h1>
+              <p className="text-white">{bio}</p>
             </div>
           </div>
 
-          {isEditing ? (
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
-              <div>
-                <label htmlFor="username" className="block text-sm font-medium text-muted-foreground mb-1">
-                  Username
-                </label>
+          <div className="flex gap-2 justify-center">
+            {isEditing ? (
+              <div className="w-full text-white max-w-md space-y-4">
                 <Input
-                  id="username"
+                  placeholder="Username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full"
                 />
-              </div>
-              <div>
-                <label htmlFor="bio" className="block text-sm font-medium text-muted-foreground mb-1">
-                  Bio
-                </label>
                 <Textarea
-                  id="bio"
+                  placeholder="Bio"
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  className="w-full"
-                  rows={4}
+                  rows={3}
                 />
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
-                <Button onClick={handleSave}>Save</Button>
-              </div>
-            </form>
-          ) : (
-            <Button onClick={() => setIsEditing(true)} className="mb-4">Edit Profile</Button>
-          )}
-
-          <div className="mt-6">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full">
-                  <Users className="mr-2 h-4 w-4" />
-                  View Friends
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Friends List</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  {friends.map((friend) => (
-                    <div key={friend.id} className="flex items-center space-x-4">
-                      <Avatar>
-                        <AvatarImage src={friend.avatar} alt={friend.name} />
-                        <AvatarFallback>{friend.name[0].toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{friend.name}</p>
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" onClick={() => setIsEditing(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSave}>Save</Button>
                 </div>
-              </DialogContent>
-            </Dialog>
+              </div>
+            ) : (
+              <>
+                <Button onClick={() => setIsEditing(true)}>
+                  Edit Profile
+                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className='text-white' variant="outline">
+                      <Users className="mr-2 text-white h-4 w-4" />
+                      View Friends
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Friends</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      {friends.map((friend) => (
+                        <div key={friend.id} className="flex items-center gap-4">
+                          <Avatar>
+                            <AvatarImage src={friend.avatar} alt={friend.name} />
+                            <AvatarFallback>{friend.name[0]}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium">{friend.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </>
+            )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <div className="max-w-6xl mx-auto">
-        <h3 className="text-2xl font-bold mb-4">My Posts</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {userPosts.map((post) => (
-            <div key={post.id} className="relative group">
-              <img
-                src={post.imageUrl}
-                alt={`Post ${post.id}`}
-                className="w-full h-auto aspect-square object-cover rounded-lg transition-opacity duration-300 group-hover:opacity-75"
-              />
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="text-white text-center">
-                  <p className="text-lg font-bold">Post {post.id}</p>
-                  <div className="flex items-center justify-center space-x-4 mt-2">
-                    <span className="flex items-center">
-                      <Heart className="w-5 h-5 mr-1" />
+        {/* Posts Section */}
+        <div className="space-y-4">
+          <h2 className="text-xl text-white font-semibold">My Posts</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {userPosts.map((post) => (
+              <div key={post.id} className="relative aspect-square rounded-xl overflow-hidden group bg-card">
+                <img
+                  src={post.imageUrl}
+                  alt={`Post ${post.id}`}
+                  className="object-cover w-full h-full transition-transform group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="flex gap-6 text-white">
+                    <span className="flex items-center gap-2">
+                      <Heart className="h-6 w-6" />
                       {post.likes}
                     </span>
-                    <span className="flex items-center">
-                      <MessageCircle className="w-5 h-5 mr-1" />
+                    <span className="flex items-center gap-2">
+                      <MessageCircle className="h-6 w-6" />
                       {post.comments}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="absolute bottom-2 left-2 right-2 flex justify-between text-white text-sm">
-                <span className="flex items-center">
-                  <Heart className="w-4 h-4 mr-1" />
-                  {post.likes}
-                </span>
-                <span className="flex items-center">
-                  <MessageCircle className="w-4 h-4 mr-1" />
-                  {post.comments}
-                </span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>
