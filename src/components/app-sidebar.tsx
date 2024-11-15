@@ -1,0 +1,86 @@
+"use client"
+
+import * as React from "react"
+import {
+  Command,
+  Map,
+  MessageCircleIcon,
+  PlusIcon,
+  SearchIcon,
+} from "lucide-react"
+
+import { NavMain } from "@/components/nav-main"
+import { NavProjects } from "@/components/nav-projects"
+import { NavSecondary } from "@/components/nav-secondary"
+import { NavUser } from "@/components/nav-user"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar"
+
+const data = {
+  user: {
+    name: "shadcn",
+    email: "m@example.com",
+    avatar: "/avatars/shadcn.jpg",
+  },
+  navMain: [
+    {
+      title: "Chats",
+      onClick: () => {
+        // TODO Add Nav Item Click Handlers
+      },
+      icon: MessageCircleIcon,
+    },
+    {
+      title: "Search",
+      onClick: () => {
+        // TODO Add Nav Item Click Handlers
+      },
+      icon: SearchIcon,
+    },
+    {
+      title: "Create",
+      onClick: () => {
+        // TODO Add Nav Item Click Handlers
+      },
+      icon: PlusIcon,
+    },
+  ],  
+  navSecondary: [],
+  projects: [],
+}
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  return (
+    <Sidebar variant="inset" {...props}>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild>
+              <a href="/home  ">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                  <Command className="size-4" />
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">EchoSphere</span>
+                </div>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+      <SidebarContent>
+        <NavMain items={data.navMain} />
+      </SidebarContent>
+      <SidebarFooter>
+        <NavUser user={data.user} />
+      </SidebarFooter>
+    </Sidebar>
+  )
+}
