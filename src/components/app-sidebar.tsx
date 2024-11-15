@@ -7,11 +7,11 @@ import {
   MessageCircleIcon,
   PlusIcon,
   SearchIcon,
+  User,
+  UserIcon,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -22,41 +22,47 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Chats",
-      onClick: () => {
-        // TODO Add Nav Item Click Handlers
-      },
-      icon: MessageCircleIcon,
-    },
-    {
-      title: "Search",
-      onClick: () => {
-        // TODO Add Nav Item Click Handlers
-      },
-      icon: SearchIcon,
-    },
-    {
-      title: "Create",
-      onClick: () => {
-        // TODO Add Nav Item Click Handlers
-      },
-      icon: PlusIcon,
-    },
-  ],  
-  navSecondary: [],
-  projects: [],
-}
+import { useRouter } from "next/navigation"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const router = useRouter();
+
+  const data = {
+    user: {
+      name: "shadcn",
+      email: "m@example.com",
+      avatar: "/avatars/shadcn.jpg",
+    },
+    navMain: [
+      {
+        title: "Chats",
+        onClick: () => {
+          router.push('/chats');
+        },
+        icon: MessageCircleIcon,
+      },
+      {
+        title: "Search",
+        onClick: () => {},
+        icon: SearchIcon,
+      },
+      {
+        title: "Create",
+        onClick: () => {},
+        icon: PlusIcon,
+      },
+      {
+        title: "Profile",
+        onClick: () => {
+          router.push('/profile');
+        },
+        icon: UserIcon,
+      },
+    ],  
+    navSecondary: [],
+    projects: [],
+  }
+  
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
