@@ -41,7 +41,7 @@ const LoginPage = () => {
       });
 
       if (result && result.ok) {
-        toast.success("Successfully in!");
+        toast.success("Successfully logged in!");
         router.replace('/home');  
       } else if (result && result.error) {
         throw new Error(result.error);
