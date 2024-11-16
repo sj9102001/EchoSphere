@@ -9,12 +9,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ImagePlus, Loader2 } from 'lucide-react'
+
 interface PostUploadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -28,7 +28,7 @@ export default function PostUploadModal({ open, onOpenChange }: PostUploadModalP
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
+    //TODO Implement Create Post API
     // Simulating an API call
     await new Promise((resolve) => setTimeout(resolve, 2000));
 

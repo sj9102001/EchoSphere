@@ -24,10 +24,12 @@ import {
 } from "@/components/ui/sidebar"
 import { useRouter } from "next/navigation"
 import PostUploadModal from "@/components/modals/create-modal"
+import PeopleSearchModal from "./modals/search-users-modal"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
-  const [isModalOpen, setModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
 
   const data = {
     user: {
@@ -45,12 +47,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },
       {
         title: "Search",
-        onClick: () => {},
+        onClick: () => setIsSearchModalOpen(true),
         icon: SearchIcon,
       },
       {
         title: "Create",
-        onClick: () => setModalOpen(true),
+        onClick: () => setIsModalOpen(true),
         icon: PlusIcon,
       },
       {
@@ -91,7 +93,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <NavUser user={data.user} />
         </SidebarFooter>
       </Sidebar>
-      <PostUploadModal open={isModalOpen} onOpenChange={setModalOpen} />
+      <PeopleSearchModal open={isSearchModalOpen} onOpenChange={setIsSearchModalOpen}/>
+      <PostUploadModal open={isModalOpen} onOpenChange={setIsModalOpen} />
     </>
 
   )

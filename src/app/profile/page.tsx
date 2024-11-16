@@ -81,7 +81,7 @@ export default function ProfilePage() {
               </div>
             ) : (
               <>
-                <Button onClick={() => setIsEditing(true)}>
+                <Button className='' onClick={() => setIsEditing(true)}>
                   Edit Profile
                 </Button>
                 <Dialog>
