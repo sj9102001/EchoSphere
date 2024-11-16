@@ -3,7 +3,7 @@ import { getToken } from 'next-auth/jwt';
 
 export async function middleware(request: NextRequest) {
     // List of protected routes
-    const protectedRoutes = ['/home', '/profile'];
+    const protectedRoutes = ['/', '/home', '/profile'];
     const authPages = ['/auth/login', '/auth/signup'];
 
     // Retrieve the token from NextAuth
@@ -31,6 +31,7 @@ export async function middleware(request: NextRequest) {
 // Apply middleware to specific routes
 export const config = {
     matcher: [
+        '/',
         '/home/:path*',
         '/profile/:path*',
         '/auth/login',
