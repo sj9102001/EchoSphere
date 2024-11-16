@@ -28,10 +28,10 @@ Below is the development checklist for EchoSphere. Tasks are marked as completed
 ### Frontend
 - [x] Create user authentication pages
 - [x] Create Sidebar
-- [ ] Implement Authentication
+- [x] Implement Authentication
 
 ### Backend
-- [ ] Build user authentication and authorization using next-auth
+- [x] Build user authentication and authorization using next-auth
 ## Getting Started
 
 First, run the development server:
