@@ -37,6 +37,10 @@ Below is the development checklist for EchoSphere. Tasks are marked as completed
 First, run the development server:
 
 ```bash
+npx prisma generate
+npx prisma db push
+Docker compose up --build
+
 npm run dev
 # or
 yarn dev
