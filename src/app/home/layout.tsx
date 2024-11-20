@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import "./globals.css";
+// import "./globals.css";
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
-import { AppSidebar } from "@/components/app-sidebar"
+import  AppSidebar  from "@/components/app-sidebar";
 import {
   SidebarInset,
   SidebarProvider,

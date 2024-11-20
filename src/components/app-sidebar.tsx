@@ -1,18 +1,20 @@
-"use client"
+'use client'
 
-import * as React from "react"
+import * as React from 'react'
+import { Bell, Home, MessageCircle, Search, Settings, TrendingUpIcon as Trending, User } from 'lucide-react'
+import { useTheme } from 'next-themes'
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
-  Command,
-  Map,
-  MessageCircleIcon,
-  PlusIcon,
-  SearchIcon,
-  User,
-  UserIcon,
-} from "lucide-react"
-import { useState } from "react"
-import { NavMain } from "@/components/nav-main"
-import { NavUser } from "@/components/nav-user"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Sidebar,
   SidebarContent,
@@ -21,81 +23,101 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { useRouter } from "next/navigation"
-import PostUploadModal from "@/components/modals/create-modal"
-import PeopleSearchModal from "./modals/search-users-modal"
+  SidebarProvider,
+  SidebarRail,
+  SidebarTrigger,
+} from '@/components/ui/sidebar'
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const router = useRouter();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
+export default function AppSidebar() {
+  const { setTheme } = useTheme()
 
-  const data = {
-    user: {
-      name: "shadcn",
-      email: "m@example.com",
-      avatar: "/avatars/shadcn.jpg",
-    },
-    navMain: [
-      {
-        title: "Chats",
-        onClick: () => {
-          router.push('/chats');
-        },
-        icon: MessageCircleIcon,
-      },
-      {
-        title: "Search",
-        onClick: () => setIsSearchModalOpen(true),
-        icon: SearchIcon,
-      },
-      {
-        title: "Create",
-        onClick: () => setIsModalOpen(true),
-        icon: PlusIcon,
-      },
-      {
-        title: "Profile",
-        onClick: () => {
-          router.push('/profile');
-        },
-        icon: UserIcon,
-      },
-    ],  
-    navSecondary: [],
-    projects: [],
-  }
-  
+  const navItems = [
+    { icon: Home, label: 'Home', href: '/' },
+    { icon: Search, label: 'Explore', href: '/explore' },
+    { icon: Bell, label: 'Notifications', href: '/notifications' },
+    { icon: MessageCircle, label: 'Messages', href: '/messages' },
+  ]
+
+  const trendingTopics = [
+    { topic: '#TechNews', posts: '2.5K' },
+    { topic: '#CodingTips', posts: '1.8K' },
+    { topic: '#AIInnovation', posts: '3.2K' },
+  ]
+
   return (
-    <>
-      <Sidebar variant="inset" {...props}>
-        <SidebarHeader>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton size="lg" asChild>
-                <a href="/home  ">
-                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                    <Command className="size-4" />
-                  </div>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">EchoSphere</span>
-                  </div>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader className="p-4">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src="/avatars/01.png" alt="@username" />
+            <AvatarFallback>UN</AvatarFallback>
+          </Avatar>
+          <div className="ml-2 flex-1 truncate">
+            <p className="text-sm font-medium">Username</p>
+            <p className="text-xs text-muted-foreground">@username</p>
+          </div>
+          <SidebarTrigger className="ml-auto hidden lg:flex" />
         </SidebarHeader>
-        <SidebarContent>
-          <NavMain items={data.navMain} />
+        <SidebarContent className="flex flex-col gap-4 p-4">
+          <form>
+            <Label htmlFor="search" className="sr-only">
+              Search
+            </Label>
+            <Input
+              id="search"
+              placeholder="Search..."
+              className="w-full"
+            />
+          </form>
+          <nav>
+            <SidebarMenu>
+              {navItems.map((item) => (
+                <SidebarMenuItem key={item.label}>
+                  <SidebarMenuButton asChild>
+                    <a href={item.href} className="flex items-center gap-2">
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </nav>
+          <div>
+            <h3 className="mb-2 text-sm font-semibold">Trending Topics</h3>
+            <div className="space-y-2">
+              {trendingTopics.map((topic) => (
+                <div key={topic.topic} className="flex items-center justify-between">
+                  <span className="text-sm">{topic.topic}</span>
+                  <Badge variant="secondary">{topic.posts} posts</Badge>
+                </div>
+              ))}
+            </div>
+          </div>
         </SidebarContent>
-        <SidebarFooter>
-          <NavUser user={data.user} />
+        <SidebarFooter className="p-4">
+          <div className="flex items-center justify-between">
+            <Button variant="outline" size="icon">
+              <Settings className="h-4 w-4" />
+              <span className="sr-only">Settings</span>
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <User className="h-4 w-4" />
+                  <span className="sr-only">User menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setTheme('light')}>Light</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('dark')}>Dark</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('system')}>System</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </SidebarFooter>
+        <SidebarRail />
       </Sidebar>
-      <PeopleSearchModal open={isSearchModalOpen} onOpenChange={setIsSearchModalOpen}/>
-      <PostUploadModal open={isModalOpen} onOpenChange={setIsModalOpen} />
-    </>
-
+    </SidebarProvider>
   )
 }
