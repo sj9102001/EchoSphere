@@ -9,17 +9,9 @@ export async function middleware(request: NextRequest) {
     // Retrieve the token from NextAuth
     const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
 
-    // Attach the user object to the request (without the id)
-    if (token && typeof token.name === 'string' && typeof token.email === 'string') {
-        request.user = {
-            name: token.name,
-            email: token.email,
-        };
-    }
-
     // Redirect authenticated users away from login/signup pages
     if (authPages.some((route) => request.nextUrl.pathname.startsWith(route))) {
-        if (token) {
+        if (token) { 
             return NextResponse.redirect(new URL('/home', request.url));
         }
     }

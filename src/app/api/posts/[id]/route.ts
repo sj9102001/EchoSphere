@@ -1,26 +1,31 @@
-// src/app/api/posts/[id]/route.ts
-import { NextResponse } from 'next/server';
-import {PrismaClient} from '@prisma/client';
+import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { getToken } from 'next-auth/jwt';
 
 const prisma = new PrismaClient();
+
 // GET: Fetch a single post by ID
-export async function GET({ params }: { params: { id: string } | undefined }) {
-    if (!params || !params.id) {
-      return new Response('Post ID is required', { status: 400 });
-    }
-  
-    const { id } = params;
-    console.log('Post ID:', id); // Debugging log to check the ID
-  
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  console.log(request)
+  const { id } = await params;
+
+  if (!id) {
+    return NextResponse.json({ error: 'ID is missing from the URL' }, { status: 400 });
+  }
 
   try {
+    const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const post = await prisma.post.findUnique({
       where: { id: parseInt(id, 10) },
       include: {
-        user: true,  // Include the related user
+        user: true,
         comments: true,
-        likes: true
-      }
+        likes: true,
+      },
     });
 
     if (!post) {
@@ -34,9 +39,15 @@ export async function GET({ params }: { params: { id: string } | undefined }) {
   }
 }
 
+
 // PUT: Update a post by ID
-export async function PUT({ params, request }: { params: { id: string }; request: Request }) {
-  const { id } = params;
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+  const { id } = await params;
+
+  if (!id) {
+    return NextResponse.json({ error: 'ID is missing from the URL' }, { status: 400 });
+  }
+
   const { content, mediaUrl, visibility } = await request.json();
 
   if (!content && !mediaUrl && !visibility) {
@@ -44,34 +55,54 @@ export async function PUT({ params, request }: { params: { id: string }; request
   }
 
   try {
+    // Check if the user is authenticated
+    const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
+    if (!token || !token.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Ensure the user is the owner of the post
+    const post = await prisma.post.findUnique({ where: { id: parseInt(id, 10) } });
+
+    if (!post) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }  
+
+    console.log(content, mediaUrl, visibility);
+
     const updatedPost = await prisma.post.update({
       where: { id: parseInt(id, 10) },
       data: {
         content: content || undefined,
         mediaUrl: mediaUrl || undefined,
-        visibility: visibility || undefined
-      }
+        visibility: visibility || undefined,
+      },
     });
 
     return NextResponse.json(updatedPost, { status: 200 });
   } catch (error) {
     console.error('Error updating post:', error);
-    return NextResponse.json({ error: 'Post not found or internal error' }, { status: 404 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
-// DELETE: Delete a post by ID
-export async function DELETE({ params }: { params: { id: string } }) {
-  const { id } = params;
-
-  try {
-    const deletedPost = await prisma.post.delete({
-      where: { id: parseInt(id, 10) }
-    });
-
-    return NextResponse.json({ message: 'Post deleted successfully' }, { status: 200 });
-  } catch (error) {
-    console.error('Error deleting post:', error);
-    return NextResponse.json({ error: 'Post not found or internal error' }, { status: 404 });
+  
+  // DELETE: Delete a post by ID
+  export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+    const { id } = await params;  // Await params to get id
+    
+    if (!id) {
+      return NextResponse.json({ error: 'ID is missing from the URL' }, { status: 400 });
+    }
+  
+    try {
+      const deletedPost = await prisma.post.delete({
+        where: { id: parseInt(id, 10) }
+      });
+  
+      return NextResponse.json({ message: 'Post deleted successfully' }, { status: 200 });
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      return NextResponse.json({ error: 'Post not found or internal error' }, { status: 404 });
+    }
   }
-}
