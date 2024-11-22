@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { getToken } from 'next-auth/jwt';
+// import { getToken } from 'next-auth/jwt';
 
 const prisma = new PrismaClient();
 
 // GET: Fetch a single post by ID
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  console.log(request)
+  // console.log(request)
   const { id } = await params;
 
   if (!id) {
@@ -14,10 +14,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 
   try {
-    const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
+    // if (!token) {
+    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // }
 
     const post = await prisma.post.findUnique({
       where: { id: parseInt(id, 10) },
@@ -56,10 +56,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
   try {
     // Check if the user is authenticated
-    const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
-    if (!token || !token.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
+    // if (!token || !token.email) {
+    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // }
 
     // Ensure the user is the owner of the post
     const post = await prisma.post.findUnique({ where: { id: parseInt(id, 10) } });
@@ -96,6 +96,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
   
     try {
+    // const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
+    // if (!token || !token.email) {
+    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // }
+
       const deletedPost = await prisma.post.delete({
         where: { id: parseInt(id, 10) }
       });

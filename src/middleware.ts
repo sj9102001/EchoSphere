@@ -3,11 +3,14 @@ import { getToken } from 'next-auth/jwt';
 
 export async function middleware(request: NextRequest) {
     // List of protected routes
-    const protectedRoutes = ['/home', '/profile'];
+    const protectedRoutes = ['/home', '/profile','posts'];
     const authPages = ['/auth/login', '/auth/signup'];
 
     // Retrieve the token from NextAuth
     const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
+
+    // Extract pathname from request URL
+    const pathname = request.nextUrl.pathname;
 
     // Redirect authenticated users away from login/signup pages
     if (authPages.some((route) => request.nextUrl.pathname.startsWith(route))) {
@@ -24,6 +27,14 @@ export async function middleware(request: NextRequest) {
         }
     }
 
+    // Protect API routes
+    if (pathname.startsWith('/api/')) {
+        if (!token) {
+            // Return JSON response for unauthorized API access
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+    }
+
     // Allow the request to continue if conditions are met
     return NextResponse.next();
 }
@@ -35,5 +46,6 @@ export const config = {
         '/profile/:path*',
         '/auth/login',
         '/auth/signup',
+        '/api/:path*'
     ],
 };

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { getToken } from 'next-auth/jwt';
+// import { getToken } from 'next-auth/jwt';
 
 const prisma = new PrismaClient();
 
@@ -8,10 +8,10 @@ const prisma = new PrismaClient();
 export async function GET(request: NextRequest) {
   try {
     // Check if the user is authenticated
-    const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
+    // if (!token) {
+    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // }
 
     // Optionally: Filter posts by user ID if needed
     const posts = await prisma.post.findMany({
@@ -40,10 +40,10 @@ export async function POST(request: NextRequest) {
 
   try {
     // Check if the user is authenticated
-    const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
-    if (!token || token.email !== userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
+    // if (!token || token.email !== userId) {
+    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // }
 
     // Create the post if the user is authorized
     const newPost = await prisma.post.create({
