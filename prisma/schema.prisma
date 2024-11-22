@@ -83,6 +83,10 @@ model User {
   createdAt DateTime @default(now())
   bio       String?
 
+  // Additional fields for profile
+  profilePicture String? // URL of profile picture
+  coverPhoto     String? // URL of cover photo
+
   // Relationships for friends
   sentRequests     FriendRequest[] @relation("SentRequests")
   receivedRequests FriendRequest[] @relation("ReceivedRequests")
@@ -106,6 +110,7 @@ model User {
   // Additional Indices
   @@index([email])
 }
+
 
 model Post {
   id         Int        @id @default(autoincrement())
