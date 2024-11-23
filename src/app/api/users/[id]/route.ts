@@ -14,8 +14,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         name: true,
         bio: true,
         email: true,
-        profilePicture: true,
-        coverPhoto: true,
         createdAt: true,
       },
     });
@@ -25,6 +23,21 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     return NextResponse.json(user);
+  } catch (error) {
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  const { id, name, bio } = await request.json();
+
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id: Number(id) },
+      data: { name, bio,  },
+    });
+
+    return NextResponse.json(updatedUser);
   } catch (error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
