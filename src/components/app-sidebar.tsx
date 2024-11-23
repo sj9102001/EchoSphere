@@ -31,7 +31,7 @@ import { useSession } from "next-auth/react"
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const { data: session, status } = useSession()
-
+  // TODO Fetch User Data Here
   const data = {
     user: {
       name: "shadcn",

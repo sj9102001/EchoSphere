@@ -57,6 +57,6 @@ export const config = {
     '/profile/:path*',
     '/auth/login',
     '/auth/signup',
-    '/api/:path*'
+    // '/api/:path*'
   ],
 };
