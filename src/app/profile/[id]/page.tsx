@@ -13,6 +13,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 const friends = [
   { id: 1, name: 'Jane Smith', avatar: 'https://github.com/shadcn.png' },
@@ -38,20 +40,40 @@ export default function ProfilePage() {
   const [bio, setBio] = useState('');
   const [isEditing, setIsEditing] = useState(false);
 
-  useEffect(() => {
-    async function fetchUserData() {
-      const userId = 1; // Replace with the appropriate ID
-      const response = await fetch(`/api/users/${userId}`);
-      const data = await response.json();
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const { data: session, status } = useSession();
 
-      if (!data.error) {
-        setUserData(data);
-        setUsername(data.name);
-        setBio(data.bio);
+  // Ensure hooks are called unconditionally
+  const loggedInUserId = session?.user?.id;
+
+  useEffect(() => {
+    async function handleProfile() {
+      // Redirect unauthenticated users
+      if (status === 'unauthenticated') {
+        router.replace('/auth/login');
+        return;
+      }
+
+      // Fetch user data if authenticated and `params.id` is available
+      if (status === 'authenticated' && params.id) {
+        try {
+          const response = await fetch(`/api/users/${params.id}`);
+          const data = await response.json();
+
+          if (!data.error) {
+            setUserData(data);
+            setUsername(data.name);
+            setBio(data.bio);
+          }
+        } catch (error) {
+          console.error('Failed to fetch user data:', error);
+        }
       }
     }
-    fetchUserData();
-  }, []);
+
+    handleProfile();
+  }, [status, params.id, router]);
 
   const handleSave = async () => {
     const response = await fetch(`/api/users/${userData.id}`, {
@@ -66,6 +88,12 @@ export default function ProfilePage() {
       setIsEditing(false);
     }
   };
+
+  if (status === 'loading') {
+    return <div>Loading...</div>;
+  }
+
+  const isOwnProfile = userData.id && userData.id.toString() === loggedInUserId?.toString();
 
   return (
     <div className="flex flex-col gap-4 p-4 min-h-screen bg-background">
@@ -84,55 +112,64 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex gap-2 justify-center">
-            {isEditing ? (
-              <div className="w-full text-white max-w-md space-y-4">
-                <Input
-                  placeholder="Username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-                <Textarea
-                  placeholder="Bio"
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  rows={3}
-                />
-                <div className="flex gap-2 justify-end">
-                  <Button variant="outline" onClick={() => setIsEditing(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleSave}>Save</Button>
-                </div>
-              </div>
-            ) : (
+            {isOwnProfile ? (
+              // If viewing own profile
               <>
-                <Button className="" onClick={() => setIsEditing(true)}>
-                  Edit Profile
-                </Button>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="text-white" variant="outline">
-                      <Users className="mr-2 text-white h-4 w-4" />
-                      View Friends
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Friends</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      {friends.map((friend) => (
-                        <div key={friend.id} className="flex items-center gap-4">
-                          <Avatar>
-                            <AvatarImage src={friend.avatar} alt={friend.name} />
-                            <AvatarFallback>{friend.name[0]}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium">{friend.name}</span>
-                        </div>
-                      ))}
+                {isEditing ? (
+                  <div className="w-full text-white max-w-md space-y-4">
+                    <Input
+                      placeholder="Username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                    />
+                    <Textarea
+                      placeholder="Bio"
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      rows={3}
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <Button variant="outline" onClick={() => setIsEditing(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSave}>Save</Button>
                     </div>
-                  </DialogContent>
-                </Dialog>
+                  </div>
+                ) : (
+                  <>
+                    <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="text-white" variant="outline">
+                          <Users className="mr-2 text-white h-4 w-4" />
+                          View Friends
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Friends</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          {friends.map((friend) => (
+                            <div key={friend.id} className="flex items-center gap-4">
+                              <Avatar>
+                                <AvatarImage src={friend.avatar} alt={friend.name} />
+                                <AvatarFallback>{friend.name[0]}</AvatarFallback>
+                              </Avatar>
+                              <span className="font-medium">{friend.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </>
+                )}
+              </>
+            ) : (
+              // If viewing another user's profile
+              <>
+                <Button variant="outline">Add Friend</Button>
+                <Button variant="outline">Remove Friend</Button>
               </>
             )}
           </div>
