@@ -31,6 +31,10 @@ import { useSession } from "next-auth/react"
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const { data: session, status } = useSession()
+  if (!session) return <p>You are not logged in</p>;
+  const response = fetch(`/api/user/${data.userid}`, {
+    method: 'GET',
+  });
   // TODO Fetch User Data Here
   const data = {
     user: {

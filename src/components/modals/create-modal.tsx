@@ -23,21 +23,46 @@ interface PostUploadModalProps {
 export default function PostUploadModal({ open, onOpenChange }: PostUploadModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [postContent, setPostContent] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [visibility, setVisibility] = useState("public");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     //TODO Implement Create Post API
     // Simulating an API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    console.log("Submitting post:", { postContent, imageFile });
+    try {
+      // Prepare form data
+      const formData = new FormData();
+      formData.append('content', postContent);
+      if (mediaFile) {
+        formData.append('mediaUrl', mediaFile);
+      }
+      formData.append("visibility", visibility);
+      // API call to the backend
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        body: formData,
+      });
 
-    setIsLoading(false);
-    onOpenChange(false);
-    setPostContent("");
-    setImageFile(null);
+      if (!response.ok) {
+        throw new Error('Failed to create the post');
+      }
+
+      const data = await response.json();
+      console.log("Post created successfully:", data);
+
+      // Clear form and close modal
+      setPostContent("");
+      setMediaFile(null);
+      onOpenChange(false);
+      setVisibility("public");
+    } catch (error) {
+      console.error("Error creating post:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -46,7 +71,7 @@ export default function PostUploadModal({ open, onOpenChange }: PostUploadModalP
         <DialogHeader>
           <DialogTitle>Create a New Post</DialogTitle>
           <DialogDescription>
-            Share your thoughts or an image with your followers.
+            Share your thoughts or a media file with your followers.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -62,19 +87,33 @@ export default function PostUploadModal({ open, onOpenChange }: PostUploadModalP
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="image-upload" className='dark:text-white text-black'>Upload Image</Label>
+              <Label htmlFor="media-upload" className='dark:text-white text-black'>Upload Media</Label>
               <Input
-                id="image-upload"
+                id="media-upload"
                 type="file"
-                accept="image/*"
-                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                accept="image/*,video/*"
+                onChange={(e) => setMediaFile(e.target.files?.[0] || null)}
                 className="cursor-pointer text-black dark:text-white"
               />
-              {imageFile && (
+              {mediaFile && (
                 <p className="text-sm text-black dark:text-white text-muted-foreground">
-                  Selected file: {imageFile.name}
+                  Selected file: {mediaFile.name}
                 </p>
               )}
+            </div>
+              <div className="grid gap-2">
+              <Label htmlFor="visibility" className="text-black dark:text-white">Visibility</Label>
+              <select
+                id="visibility"
+                value={visibility}
+                onChange={(e) => setVisibility(e.target.value)}
+                className="p-2 border rounded-md bg-white dark:bg-black text-black dark:text-white"
+              >
+                <option value="" disabled>Select visibility</option>
+                <option value="public">Public</option>
+                <option value="friends-only">Friends Only</option>
+                <option value="private">Private</option>
+              </select>
             </div>
           </div>
           <DialogFooter>

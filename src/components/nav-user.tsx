@@ -1,5 +1,7 @@
 "use client"
 
+import { signOut, useSession } from 'next-auth/react'
+
 import {
   BadgeCheck,
   Bell,
@@ -39,6 +41,13 @@ export function NavUser({
     avatar: string
   }
 }) {
+
+  const handleLogout = () => {
+    signOut({
+      redirect: true,
+      callbackUrl: '/login', // Redirect to login page after logout
+    })
+  }
   const { isMobile } = useSidebar()
 
   return (

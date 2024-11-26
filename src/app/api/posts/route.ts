@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-// import { getToken } from 'next-auth/jwt';
+import { getToken } from 'next-auth/jwt';
 
+const secret = process.env.SECRET_KEY;
 const prisma = new PrismaClient();
 
 // GET: Get all the posts
@@ -32,8 +33,9 @@ export async function GET(request: NextRequest) {
 
 // POST: Create a new post
 export async function POST(request: NextRequest) {
-  const { content, userId, mediaUrl, visibility } = await request.json();
-
+  const { content, mediaUrl, visibility } = await request.json();
+  const token = await getToken({req : request, secret})
+  const userId = token ? token.id : null;
   if (!content || !userId) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
