@@ -32,7 +32,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const { data: session, status } = useSession()
   if (!session) return <p>You are not logged in</p>;
-  const response = fetch(`/api/user/${data.userid}`, {
+  const response = fetch(`/api/user/${data.id}`, {
     method: 'GET',
   });
   // TODO Fetch User Data Here

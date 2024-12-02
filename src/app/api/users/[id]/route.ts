@@ -24,6 +24,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(user);
   } catch (error) {
+    console.log(error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -39,6 +40,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(updatedUser);
   } catch (error) {
+    console.log(error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
