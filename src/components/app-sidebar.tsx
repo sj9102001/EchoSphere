@@ -26,20 +26,23 @@ SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { ModalContext } from "@/context/ModalContext"
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const { data: session, status } = useSession()
-  if (!session) return <p>You are not logged in</p>;
-  const response = fetch(`/api/user/${data.id}`, {
-    method: 'GET',
-  });
+  const {
+    searchUserModalChange,
+    createPostModalChange,
+} = React.useContext(ModalContext);
+  if (!session) return <div></div>;
+  console.log(session)
   // TODO Fetch User Data Here
-  const data = {
+  const userData = {
     user: {
-      name: "shadcn",
-      email: "m@example.com",
+      name: session.user.name,
+      email: session.user.email,
       avatar: "/avatars/shadcn.jpg",
 },
     navMain: [
@@ -52,12 +55,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 },
       {
         title: "Search",
-        onClick: () => {},
+        onClick: () => {
+          searchUserModalChange(true)
+        },
         icon: SearchIcon,
 },
       {
         title: "Create",
-        onClick: () => {},
+        onClick: () => {
+          createPostModalChange(true)
+        },
         icon: PlusIcon,
       },
       {
@@ -79,29 +86,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
   
 return (
-<Sidebar variant="inset" {...props}>
-<SidebarHeader>
-<SidebarMenu>
-<SidebarMenuItem>
-<SidebarMenuButton size="lg" asChild>
-<a href="/home  ">
-<div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-<Command className="size-4" />
-</div>
-<div className="grid flex-1 text-left text-sm leading-tight">
-<span className="truncate font-semibold">EchoSphere</span>
-</div>
-</a>
-</SidebarMenuButton>
-</SidebarMenuItem>
-</SidebarMenu>
-</SidebarHeader>
-<SidebarContent>
-<NavMain items={data.navMain} />
-</SidebarContent>
-<SidebarFooter>
-<NavUser user={data.user} />
-</SidebarFooter>
-</Sidebar>
+  <Sidebar variant="inset" {...props}>
+    <SidebarHeader>
+      <SidebarMenu>
+      <SidebarMenuItem>
+      <SidebarMenuButton size="lg" asChild>
+      <a href="/home  ">
+      <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+      <Command className="size-4" />
+      </div>
+      <div className="grid flex-1 text-left text-sm leading-tight">
+      <span className="truncate font-semibold">EchoSphere</span>
+      </div>
+      </a>
+      </SidebarMenuButton>
+      </SidebarMenuItem>
+      </SidebarMenu>
+    </SidebarHeader>
+    <SidebarContent>
+      <NavMain items={userData.navMain} />
+    </SidebarContent>
+    <SidebarFooter>
+      <NavUser user={userData.user} />
+    </SidebarFooter>
+  </Sidebar>
 )
 }

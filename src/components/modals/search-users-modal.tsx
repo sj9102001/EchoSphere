@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/pagination"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Search, User } from 'lucide-react'
+import { ModalContext } from '@/context/ModalContext'
 
 interface SearchModalProps {
     open: boolean;
@@ -36,7 +37,11 @@ const allPeople = Array.from({ length: 50 }, (_, i) => ({
   avatar: `/placeholder.svg?height=40&width=40`
 }))
 
-export default function PeopleSearchModal({ open, onOpenChange }: SearchModalProps) {
+export default function PeopleSearchModal() {
+  const {
+    searchUserModalIsOpen,
+    searchUserModalChange,
+} = useContext(ModalContext);
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const resultsPerPage = 5
@@ -62,7 +67,7 @@ export default function PeopleSearchModal({ open, onOpenChange }: SearchModalPro
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={searchUserModalIsOpen} onOpenChange={searchUserModalChange}>
       <DialogContent className="sm:max-w-[500px] text-black dark:text-white">
         <DialogHeader>
           <DialogTitle>Search People</DialogTitle>
