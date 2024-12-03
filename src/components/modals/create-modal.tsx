@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -14,14 +14,18 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ImagePlus, Loader2 } from 'lucide-react'
-
+import { ModalContext } from '@/context/ModalContext'
 interface PostUploadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export default function PostUploadModal({ open, onOpenChange }: PostUploadModalProps) {
-  const [isLoading, setIsLoading] = useState(false);
+export default function PostUploadModal() {
+  const {
+    createPostModalIsOpen,
+    createPostModalChange,
+} = useContext(ModalContext);  const [isLoading, setIsLoading] = useState(false);
+
   const [postContent, setPostContent] = useState("");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [visibility, setVisibility] = useState("public");
@@ -56,7 +60,7 @@ export default function PostUploadModal({ open, onOpenChange }: PostUploadModalP
       // Clear form and close modal
       setPostContent("");
       setMediaFile(null);
-      onOpenChange(false);
+      createPostModalChange(false);
       setVisibility("public");
     } catch (error) {
       console.error("Error creating post:", error);
@@ -66,7 +70,7 @@ export default function PostUploadModal({ open, onOpenChange }: PostUploadModalP
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={createPostModalIsOpen} onOpenChange={createPostModalChange}>
        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-black">
         <DialogHeader>
           <DialogTitle>Create a New Post</DialogTitle>
@@ -117,7 +121,7 @@ export default function PostUploadModal({ open, onOpenChange }: PostUploadModalP
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" className='text-black dark:text-white' variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" className='text-black dark:text-white' variant="outline" onClick={() => createPostModalChange(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>

@@ -4,7 +4,6 @@ import { getToken } from 'next-auth/jwt';
 const secret = process.env.SECRET_KEY;
 const prisma = new PrismaClient();
 
-// TODO GET: Fetch All Friends
 export async function GET(request: NextRequest) {
     const token = await getToken({req : request, secret})
     const userId = token ? token.id : null;

@@ -43,9 +43,10 @@ export function NavUser({
 }) {
 
   const handleLogout = () => {
+    console.log("Signing out")
     signOut({
       redirect: true,
-      callbackUrl: '/login', // Redirect to login page after logout
+      callbackUrl: '/auth/login', // Redirect to login page after logout
     })
   }
   const { isMobile } = useSidebar()
@@ -90,21 +91,8 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell />
                 Notifications
@@ -112,8 +100,7 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <LogOut />
-              {/* TODO Implement log out */}
+              <LogOut onClick={handleLogout} />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

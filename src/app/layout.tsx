@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import 'react-toastify/dist/ReactToastify.css';
 import { SessionProvider } from "next-auth/react";
+import PostUploadModal from "@/components/modals/create-modal";
+import PeopleSearchModal from "@/components/modals/search-users-modal";
+import { ModalProvider } from "@/context/ModalContext";
     
 export default function RootLayout({
     children,
@@ -14,7 +17,13 @@ export default function RootLayout({
             <body
                 className="dark"
             >
-                <SessionProvider>{children}</SessionProvider>
+                <SessionProvider>
+                    <ModalProvider>
+                        <PostUploadModal />
+                        <PeopleSearchModal />
+                        {children}    
+                    </ModalProvider>
+                </SessionProvider>
             </body>
         </html>
     );
