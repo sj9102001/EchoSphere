@@ -43,9 +43,10 @@ export function NavUser({
 }) {
 
   const handleLogout = () => {
+    console.log("Signing out")
     signOut({
       redirect: true,
-      callbackUrl: '/login', // Redirect to login page after logout
+      callbackUrl: '/auth/login', // Redirect to login page after logout
     })
   }
   const { isMobile } = useSidebar()
@@ -99,7 +100,7 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <LogOut />
+              <LogOut onClick={handleLogout} />
               {/* TODO Implement log out */}
               Log out
             </DropdownMenuItem>
