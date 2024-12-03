@@ -33,8 +33,7 @@ export async function GET(request: NextRequest) {
         },
         comments: true,
         likes: true,
-        mediaUrls: true,
-      },
+      }, 
     });
 
     // Count total posts

@@ -1,5 +1,5 @@
+import { PrismaClient, Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -49,6 +49,27 @@ export async function GET(request: NextRequest) {
     );
 
     // Query for posts
+    const searchCondition = search
+      ? {
+          OR: [
+            {
+              content: {
+                contains: search,
+                mode: Prisma.QueryMode.insensitive, // Corrected to use QueryMode enum
+              },
+            },
+            {
+              user: {
+                name: {
+                  contains: search,
+                  mode: Prisma.QueryMode.insensitive, // Corrected to use QueryMode enum
+                },
+              },
+            },
+          ],
+        }
+      : {};
+
     const where = {
       AND: [
         {
@@ -62,17 +83,10 @@ export async function GET(request: NextRequest) {
             },
           ],
         },
-        search
-          ? {
-              OR: [
-                { content: { contains: search, mode: 'insensitive' } },
-                { user: { name: { contains: search, mode: 'insensitive' } } },
-              ],
-            }
-          : {},
+        searchCondition,
       ],
     };
-
+    
     // Fetch posts
     const posts = await prisma.post.findMany({
       where,
@@ -91,7 +105,6 @@ export async function GET(request: NextRequest) {
         },
         comments: true,
         likes: true,
-        mediaUrls: true,
       },
     });
 

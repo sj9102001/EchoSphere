@@ -34,19 +34,16 @@ export async function GET(request: NextRequest) {
 // POST: Create a new post
 export async function POST(request: NextRequest) {
   const { content, mediaUrl, visibility } = await request.json();
-  const token = await getToken({req : request, secret})
-  const userId = token ? token.id : null;
-  if (!content || !userId) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+  const token = await getToken({ req: request, secret });
+  
+  // Ensure the token and userId are valid
+  const userId = token?.id;
+  
+  if (!content || !userId || typeof userId !== 'number') {
+    return NextResponse.json({ error: 'Missing required fields or invalid userId' }, { status: 400 });
   }
 
   try {
-    // Check if the user is authenticated
-    // const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
-    // if (!token || token.email !== userId) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
-
     // Create the post if the user is authorized
     const newPost = await prisma.post.create({
       data: {
