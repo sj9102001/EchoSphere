@@ -11,8 +11,8 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({error: 'ID is missing from the URL'},{status: 400})
     }
     try{
-        const friends = await prisma.friend.findmany({
-            where :{ usedId : userId },
+        const friends = await prisma.friend.findMany({
+            where :{ user1Id : userId },
         });
         return NextResponse.json(friends, {status:200});
     } catch(error){
