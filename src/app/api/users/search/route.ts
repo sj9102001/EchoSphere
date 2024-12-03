@@ -2,13 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import {PrismaClient} from '@prisma/client';
 
 const prisma = new PrismaClient();
-export async function GET(request: NextRequest, { params }: { params: { keyword: string } }) {
+export async function GET(request: NextRequest) {
   try {
     // Extract query parameters for pagination and sorting
-    const { page, limit, sortBy, sortOrder } = Object.fromEntries(request.nextUrl.searchParams);
-
-    // Extract search name from params
-    const { keyword } = await params;
+    const { search, page, limit, sortBy, sortOrder } = Object.fromEntries(request.nextUrl.searchParams);
 
     // Defaults for pagination
     const pageNumber = parseInt(page || "1", 10);
@@ -20,10 +17,10 @@ export async function GET(request: NextRequest, { params }: { params: { keyword:
     const order = sortOrder === "asc" ? "asc" : "desc";
 
     // Search condition
-    const where = keyword
+    const where = search
       ? {
           name: {
-            contains: keyword,
+            contains: search,
             mode: "insensitive",
           },
         }
