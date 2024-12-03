@@ -6,7 +6,6 @@ const secret = process.env.SECRET_KEY;
 
 const prisma = new PrismaClient();
 
-// TODO POST: Send Friend Request From SendorID to ReceiverID
 export async function POST(request: NextRequest) {
     const token = await getToken({ req: request, secret });
     const senderId = token ? token.id : null;
@@ -32,7 +31,6 @@ export async function POST(request: NextRequest) {
 }
 
 
-// TODO GET: Fetch All Friend Request of ReceiverID
 export async function GET(request: NextRequest) {
     const token = await getToken({req:request, secret});
     const userId = token ? token.id : null;
@@ -53,7 +51,6 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// TODO PUT: Accept Friend Request Of SendorID By ReceiverID
 export async function PUT(request: NextRequest) {
     // accept friend request
     const token = await getToken({req:request, secret});
@@ -90,8 +87,6 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({error: 'Internal Server Error'}, {status: 500});
     }
 }
-
-// TODO DELETE :Reject Friend Request Of SendorID to ReceiverID
 export async function DELETE(request: NextRequest) {
     const token = await getToken({req:request, secret});
     const userId = token ? token.id : null;

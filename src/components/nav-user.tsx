@@ -101,7 +101,6 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <LogOut onClick={handleLogout} />
-              {/* TODO Implement log out */}
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

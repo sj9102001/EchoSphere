@@ -38,7 +38,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 } = React.useContext(ModalContext);
   if (!session) return <div></div>;
   console.log(session)
-  // TODO Fetch User Data Here
   const userData = {
     user: {
       name: session.user.name,
