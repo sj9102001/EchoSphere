@@ -6,6 +6,7 @@ import { SessionProvider } from "next-auth/react";
 import PostUploadModal from "@/components/modals/create-modal";
 import PeopleSearchModal from "@/components/modals/search-users-modal";
 import { ModalProvider } from "@/context/ModalContext";
+import { Toaster } from "@/components/ui/toaster";
     
 export default function RootLayout({
     children,
@@ -21,6 +22,7 @@ export default function RootLayout({
                     <ModalProvider>
                         <PostUploadModal />
                         <PeopleSearchModal />
+                        <Toaster />
                         {children}    
                     </ModalProvider>
                 </SessionProvider>

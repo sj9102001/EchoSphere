@@ -2,19 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
+    const payloadBody = await request.json();
     // Extract query parameters for pagination and sorting
-    const { search, page, limit, sortBy, sortOrder } = Object.fromEntries(request.nextUrl.searchParams);
+    const { search, page, limit, sortBy, sortOrder } = payloadBody;
 
     // Defaults for pagination
-    const pageNumber = parseInt(page || "1", 10);
-    const pageSize = parseInt(limit || "10", 10);
+    const pageNumber = page || 1;
+    const pageSize = limit || 10;
     const skip = (pageNumber - 1) * pageSize;
 
     // Defaults for sorting
-    const sortField = sortBy || "createdAt";
-    const order = sortOrder === "asc" ? "asc" : "desc";
+    const sortField = sortBy || "name";
+    const order = sortOrder === "desc" ? "asc" : "desc";
 
     // Search condition
     const where = search
@@ -36,6 +37,7 @@ export async function GET(request: NextRequest) {
       },
       select: {
         id: true,
+        email: true,
         name: true,
         profilePicture: true,
         createdAt: true,

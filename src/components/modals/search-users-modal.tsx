@@ -1,6 +1,6 @@
 'use client'
 
-import { useContext, useState } from 'react'
+import { useContext, useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -23,51 +23,120 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Search, User } from 'lucide-react'
 import { ModalContext } from '@/context/ModalContext'
+import { useRouter } from 'next/navigation'
+
+// Define the User interface based on your backend response
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  username: string;
+  profilePicture: string;
+  createdAt: string;
+}
 
 interface SearchModalProps {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+// Fetch API data for users
+const fetchUsers = async (searchQuery: string, page: number, limit: number) => {
+  const payload = {
+    search: searchQuery,
+    page: page,
+    limit: limit,
+    sortBy: "name", // Sorting by name, can be adjusted
+    sortOrder: "desc", // or "desc" for descending order
+  };
+
+  const response = await fetch('/api/users/search', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch users');
   }
 
-// Mock data for demonstration
-const allPeople = Array.from({ length: 50 }, (_, i) => ({
-  id: i + 1,
-  name: `Person ${i + 1}`,
-  username: `user${i + 1}`,
-  avatar: `/placeholder.svg?height=40&width=40`
-}))
+  return response.json();
+}
+const sendFriendRequest = async (userId: number) => {
+  try {
+    const response = await fetch('/api/friends/request', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId }),
+    });
 
+    if (!response.ok) {
+      throw new Error('Failed to send friend request');
+    }
+
+    // You might want to update the UI or show a success message here
+    console.log('Friend request sent successfully');
+  } catch (error) {
+    console.error('Error sending friend request:', error);
+    // You might want to show an error message to the user here
+  }
+};
 export default function PeopleSearchModal() {
   const {
     searchUserModalIsOpen,
     searchUserModalChange,
-} = useContext(ModalContext);
-  const [searchQuery, setSearchQuery] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
-  const resultsPerPage = 5
+  } = useContext(ModalContext);
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
+  const resultsPerPage = 5;
 
-  const filteredPeople = allPeople.filter(person =>
-    person.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    person.username.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1); // Reset to page 1 when search query changes
+  };
 
-  const totalPages = Math.ceil(filteredPeople.length / resultsPerPage)
-  const currentResults = filteredPeople.slice(
-    (currentPage - 1) * resultsPerPage,
-    currentPage * resultsPerPage
-  )
+  const handlePageChange = async (page: number) => {
+    setCurrentPage(page);
+  };
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value)
-    setCurrentPage(1)
-  }
+  // Reset state when the modal closes
+  const handleModalClose = (isOpen: boolean) => {
+    if (!isOpen) {
+      setSearchQuery('');
+      setCurrentPage(1);
+      setUsers([]);
+    }
+    searchUserModalChange(isOpen);
+  };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-  }
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!searchQuery && currentPage === 1) return; // Don't fetch on initial empty state
+      setLoading(true);
+      try {
+        const data = await fetchUsers(searchQuery, currentPage, resultsPerPage);
+        setUsers(data.data);
+        setTotalPages(data.meta.totalPages);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [searchQuery, currentPage]);
 
   return (
-    <Dialog open={searchUserModalIsOpen} onOpenChange={searchUserModalChange}>
+    <Dialog open={searchUserModalIsOpen} onOpenChange={handleModalClose}>
       <DialogContent className="sm:max-w-[500px] text-black dark:text-white">
         <DialogHeader>
           <DialogTitle>Search People</DialogTitle>
@@ -86,20 +155,36 @@ export default function PeopleSearchModal() {
             />
           </div>
           <div className="space-y-4">
-            {currentResults.map(person => (
-              <div key={person.id} className="flex items-center dark:hover:bg-gray-700   transtion transition-all p-2 rounded-lg space-x-4">
-                <Avatar>
-                  <AvatarImage src={person.avatar} alt={person.name} />
-                  <AvatarFallback><User /></AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm \ text-black dark:text-white font-medium leading-none">{person.name}</p>
-                  <p className="text-sm text-black dark:text-white text-muted-foreground">@{person.username}</p>
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+              users.map(person => (
+                <div onClick={()=>{
+                  handleModalClose(false);
+                  router.push(`/profile/${person.id}`)
+                }} key={person.id} className="flex items-center justify-between dark:hover:bg-gray-700 transtion transition-all p-2 rounded-lg ">
+                  <div className='flex space-x-4 '>
+                    <Avatar>
+                      <AvatarImage src={person.profilePicture || '/placeholder.svg'} alt={person.name} />
+                      <AvatarFallback><User /></AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm text-black dark:text-white font-medium leading-none">{person.name}</p>
+                      <p className="text-sm text-black dark:text-white text-muted-foreground">  {person.email}</p>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => sendFriendRequest(person.id)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Send Friend Request
+                  </Button>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
-          {filteredPeople.length > resultsPerPage && (
+          {totalPages > 1 && (
             <div className="overflow-x-auto px-1 pb-2">
               <Pagination>
                 <PaginationContent>
@@ -161,5 +246,5 @@ export default function PeopleSearchModal() {
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
