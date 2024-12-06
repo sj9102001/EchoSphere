@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getToken } from 'next-auth/jwt';
@@ -29,17 +30,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
- 
+
 
 // POST: Create a new post
 export async function POST(request: NextRequest) {
   const { content, mediaUrl, visibility } = await request.json();
   const token = await getToken({ req: request, secret });
-  
+
   // Ensure the token and userId are valid
   const userId = token?.id;
-  
-  if (!content || !userId || typeof userId !== 'number') {
+  console.log(userId);
+
+  if (!content || !userId) {
     return NextResponse.json({ error: 'Missing required fields or invalid userId' }, { status: 400 });
   }
 
@@ -48,7 +50,7 @@ export async function POST(request: NextRequest) {
     const newPost = await prisma.post.create({
       data: {
         content,
-        userId,
+        userId: parseInt(userId.toString()),
         mediaUrl,
         visibility,
       },

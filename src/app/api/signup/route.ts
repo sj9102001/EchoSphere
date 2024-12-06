@@ -5,12 +5,13 @@ import { NextRequest, NextResponse } from "next/server";
 export const hashPassword = async (password: string): Promise<string> => {
   const salt = await bcrypt.genSalt(10);
   return bcrypt.hash(password, salt);
-}; 
+};
 
 const prisma = new PrismaClient();
-export async function POST (
+export async function POST(
   req: NextRequest
 ) {
+  console.log("UPLOADING")
   const data = await req.json();
   if (req.method !== "POST") {
     return NextResponse.json({
@@ -40,10 +41,12 @@ export async function POST (
         password: hashedPassword,
       },
     });
-    return NextResponse.json({message: "User Created", user: {
-      username: newUser.name,
-      email: newUser.email
-    }}, {
+    return NextResponse.json({
+      message: "User Created", user: {
+        username: newUser.name,
+        email: newUser.email
+      }
+    }, {
       status: 201
     });
   } catch (error) {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -44,7 +45,7 @@ const SignupPage = () => {
       if (res.ok) {
         successToast(data.message);
         router.push("/auth/login")
-      }else {
+      } else {
         throw new Error(data.message);
       }
     } catch (error: any) {

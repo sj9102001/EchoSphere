@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function GET(request: NextRequest) {
   try {
     // Extract query parameters
-    const { page, limit} = Object.fromEntries(
+    const { page, limit } = Object.fromEntries(
       request.nextUrl.searchParams
     );
 
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const skip = (pageNumber - 1) * pageSize;
 
     // Query for posts
-    const where = {visibility: 'public'};
+    const where = { visibility: 'public' };
 
     // Fetch posts
     const posts = await prisma.post.findMany({
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         },
         comments: true,
         likes: true,
-      }, 
+      },
     });
 
     // Count total posts
@@ -41,7 +41,6 @@ export async function GET(request: NextRequest) {
 
     // Pagination metadata
     const totalPages = Math.ceil(totalPosts / pageSize);
-
     const response = {
       data: posts,
       meta: {
