@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import { useContext, useState, useEffect } from 'react'
@@ -21,23 +23,20 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Search, User } from 'lucide-react'
+import { Search, User, UserRoundCheck } from 'lucide-react'
 import { ModalContext } from '@/context/ModalContext'
 import { useRouter } from 'next/navigation'
+import { toast } from '@/hooks/use-toast'
 
 // Define the User interface based on your backend response
-interface User {
+interface SearchedUser {
   id: number;
   name: string;
   email: string;
   username: string;
   profilePicture: string;
+  friendRequestSent: boolean;
   createdAt: string;
-}
-
-interface SearchModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
 }
 
 // Fetch API data for users
@@ -64,27 +63,7 @@ const fetchUsers = async (searchQuery: string, page: number, limit: number) => {
 
   return response.json();
 }
-const sendFriendRequest = async (userId: number) => {
-  try {
-    const response = await fetch('/api/friends/request', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId }),
-    });
 
-    if (!response.ok) {
-      throw new Error('Failed to send friend request');
-    }
-
-    // You might want to update the UI or show a success message here
-    console.log('Friend request sent successfully');
-  } catch (error) {
-    console.error('Error sending friend request:', error);
-    // You might want to show an error message to the user here
-  }
-};
 export default function PeopleSearchModal() {
   const {
     searchUserModalIsOpen,
@@ -94,8 +73,9 @@ export default function PeopleSearchModal() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<SearchedUser[]>([]);
   const [loading, setLoading] = useState(false);
+  const [buttonIsLoading, setButtonIsLoading] = useState(false);
   const resultsPerPage = 5;
 
   const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,7 +96,38 @@ export default function PeopleSearchModal() {
     }
     searchUserModalChange(isOpen);
   };
+  const sendFriendRequest = async (userId: number) => {
+    try {
+      setButtonIsLoading(true);
+      const response = await fetch('/api/friend/request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ receiverId: userId }),
+      });
 
+      if (!response.ok) {
+        throw new Error('Failed to send friend request');
+      }
+
+      // You might want to update the UI or show a success message here
+      toast({
+        title: "Sent Friend Request"
+      });
+      setUsers((prevUserState) => {
+        const index = prevUserState.findIndex((user) => user.id == userId);
+        prevUserState[index].friendRequestSent = true;
+        return prevUserState;
+      })
+    } catch (error: any) {
+      toast({
+        title: "Failed Sending Friend Request",
+        variant: "destructive"
+      })
+    }
+    setButtonIsLoading(false);
+  };
   useEffect(() => {
     const fetchData = async () => {
       if (!searchQuery && currentPage === 1) return; // Don't fetch on initial empty state
@@ -159,7 +170,7 @@ export default function PeopleSearchModal() {
               <p>Loading...</p>
             ) : (
               users.map(person => (
-                <div onClick={()=>{
+                <div onClick={() => {
                   handleModalClose(false);
                   router.push(`/profile/${person.id}`)
                 }} key={person.id} className="flex items-center justify-between dark:hover:bg-gray-700 transtion transition-all p-2 rounded-lg ">
@@ -173,13 +184,17 @@ export default function PeopleSearchModal() {
                       <p className="text-sm text-black dark:text-white text-muted-foreground">  {person.email}</p>
                     </div>
                   </div>
-                  <Button 
-                    onClick={() => sendFriendRequest(person.id)}
+                  {person.friendRequestSent ? <UserRoundCheck /> : <Button
+                    disabled={buttonIsLoading}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      sendFriendRequest(person.id)
+                    }}
                     variant="outline"
                     size="sm"
                   >
                     Send Friend Request
-                  </Button>
+                  </Button>}
                 </div>
               ))
             )}
@@ -189,7 +204,7 @@ export default function PeopleSearchModal() {
               <Pagination>
                 <PaginationContent>
                   <PaginationItem>
-                    <PaginationPrevious 
+                    <PaginationPrevious
                       onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                       className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
                     />
@@ -234,7 +249,7 @@ export default function PeopleSearchModal() {
                     </PaginationItem>
                   )}
                   <PaginationItem>
-                    <PaginationNext 
+                    <PaginationNext
                       onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
                       className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
                     />
