@@ -20,8 +20,11 @@ export default {
   				accent: 'hsl(var(--sidebar-accent))',
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
+				dark: "#1a202c",
   				ring: 'hsl(var(--sidebar-ring))'
-  			}
+  			},
+			  'primary-bg': '#000000', // Black background
+			  'secondary-bg': '#1f1f1f', // Dark gray background
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

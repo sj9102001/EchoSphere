@@ -96,13 +96,23 @@ export default function PostUploadModal() {
       setMediaFile(null);
       createPostModalChange(false);
       setVisibility('public');
-    } catch (error: any) {
-      console.error('Error creating post:', error);
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+    } catch (error: unknown) {
+  // Narrow the type of `error`
+  if (error instanceof Error) {
+    console.error('Error creating post:', error);
+    toast({
+      title: "Error",
+      description: error.message,
+      variant: "destructive",
+    });
+  } else {
+    console.error('Unexpected error:', error);
+    toast({
+      title: "Error",
+      description: 'An unexpected error occurred.',
+      variant: "destructive",
+    });
+  }
     } finally {
       setIsLoading(false);
       setUploadProgress(0);

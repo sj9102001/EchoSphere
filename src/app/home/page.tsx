@@ -48,7 +48,7 @@ export default function ExplorePage() {
       setPosts(data.data)
       console.log(data.data);
       setLoading(false)
-    } catch (err: any) {
+    } catch (err) {
       setError('Error fetching posts. Please try again later.')
       setLoading(false)
     }

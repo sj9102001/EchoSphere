@@ -3,11 +3,14 @@ import { getToken } from 'next-auth/jwt';
 
 export async function middleware(request: NextRequest) {
   // List of protected routes
-  const protectedRoutes = ['/home', '/profile', '/user'];
+  const protectedRoutes = ['/home', '/profile', '/user', '/chatrooms', '/chats'];
   const authPages = ['/auth/login', '/auth/signup'];
 
   // Retrieve the token from NextAuth
   const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
+
+  // console.log(request);
+  // console.log("middleware:",token);
 
   // Extract pathname from request URL
   const pathname = request.nextUrl.pathname;
@@ -39,7 +42,9 @@ export async function middleware(request: NextRequest) {
 
   // Protect API routes
   if (pathname.startsWith('/api/')) {
+    // console.log("middleware2:",token);
     if (!token) {
+      // console.log("middleware: unauthorized");
       // Return JSON response for unauthorized API access
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -57,6 +62,10 @@ export const config = {
     '/profile/:path*',
     '/auth/login',
     '/auth/signup',
+    '/api/chatrooms',
+    '/api/chat/:id*',
+    '/chat/:id*',
+    '/chatrooms',
     // '/api/:path*'
   ],
 };

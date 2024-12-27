@@ -95,6 +95,20 @@ export async function PUT(request: NextRequest) {
             },
         });
 
+        // Create a new chatroom between the two users
+        await prisma.chatRoom.create({
+            data: {
+                participants: {
+                    connect: [
+                        { id: friendRequest.senderId },
+                        { id: friendRequest.receiverId },
+                    ],
+                },
+                isGroup: false, // 1-to-1 chatroom
+                userIds: [friendRequest.senderId, friendRequest.receiverId],
+            },
+        });
+
         return NextResponse.json({ message: 'Friend added successfully' }, { status: 200 });
     } catch (error) {
         console.error('Error adding friend:', error);

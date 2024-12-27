@@ -14,38 +14,32 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  bio       String?
-
+  id                Int         @id @default(autoincrement())
+  name              String
+  email             String      @unique
+  password          String
+  createdAt         DateTime    @default(now())
+  bio               String?
+  
   // Additional fields for profile
   profilePicture String? // URL of profile picture
   coverPhoto     String? // URL of cover photo
 
-  // Relationships for friends
-  sentRequests     FriendRequest[] @relation("SentRequests")
-  receivedRequests FriendRequest[] @relation("ReceivedRequests")
-
-  // User Posts
-  posts Post[]
-
   // Messaging System
-  messagesSent     Message[]  @relation("SentMessages")
-  messagesReceived Message[]  @relation("ReceivedMessages")
-  chatRooms        ChatRoom[] @relation("ChatParticipants")
+  messagesSent      Message[]   @relation("SentMessages")
+  // messagesReceived  Message[]   @relation("ReceivedMessages")
 
-  // Post Interactions
-  postLikes PostLike[] @relation("UserPostLikes")
-  comments  Comment[]  @relation("UserComments")
+  // Other fields and relations
+  sentRequests      FriendRequest[] @relation("SentRequests")
+  receivedRequests  FriendRequest[] @relation("ReceivedRequests")
+  
+  posts             Post[]
+  postLikes         PostLike[]   @relation("UserPostLikes")
+  comments          Comment[]    @relation("UserComments")
+  chatRooms         ChatRoom[]   @relation("ChatParticipants")
+  user1Friends      Friend[]     @relation("User1Friends")
+  user2Friends      Friend[]     @relation("User2Friends")
 
-  // Friend relationships
-  user1Friends Friend[] @relation("User1Friends")
-  user2Friends Friend[] @relation("User2Friends")
-
-  // Additional Indices
   @@index([email])
 }
 
@@ -115,28 +109,70 @@ model Friend {
   @@unique([user1Id, user2Id])
 }
 
+
+model ChatRoom {
+  id           Int       @id @default(autoincrement())
+  participants User[]    @relation("ChatParticipants")  // Relationship to User (participants)
+  messages     Message[] // Relationship to messages
+  createdAt    DateTime  @default(now())  // Timestamp when the chat room is created
+  isGroup      Boolean   @default(false)  // Indicates if it's a group chat or 1-to-1 chat
+  userIds      Int[]     // Array of user IDs in the chat room (this is handled by the relation)
+  name         String?
+  // Additional Indices
+  @@index([id])
+}
+
 model Message {
   id         Int      @id @default(autoincrement())
   content    String
   createdAt  DateTime @default(now())
   sender     User     @relation("SentMessages", fields: [senderId], references: [id])
   senderId   Int
-  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
-  receiverId Int
+  // receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  // receiverId Int
   chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
   chatRoomId Int
-  read       Boolean  @default(false) // Message read status
+  read       Boolean  @default(false)
 
-  // Additional Indices
-  @@index([senderId, receiverId])
+  // @@index([senderId, receiverId])
 }
 
-model ChatRoom {
-  id           Int       @id @default(autoincrement())
-  participants User[]    @relation("ChatParticipants")
-  messages     Message[]
-  createdAt    DateTime  @default(now())
 
-  // Additional Indices
-  @@index([id])
-}
+//model Message {
+//  id         Int      @id @default(autoincrement())
+//  content    String
+//  createdAt  DateTime @default(now())
+//  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+//  senderId   Int
+//  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+//  receiverId Int
+//  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+//  chatRoomId Int
+//  read       Boolean  @default(false) // Message read status
+//
+//  // Additional Indices
+//  @@index([senderId, receiverId])
+//}
+//
+//model ChatRoom {
+//  id           Int       @id @default(autoincrement())
+//  participants User[]    @relation("ChatParticipants")
+//  messages     Message[]
+//  createdAt    DateTime  @default(now())
+//
+//  // Additional Indices
+//  @@index([id])
+//}
+//model Message {
+//  id         Int      @id @default(autoincrement())
+//  content    String   // Content of the message
+//  createdAt  DateTime @default(now()) // Timestamp when the message is sent
+//  senderId   Int      // ID of the sender
+//  sender     User     @relation("SentMessages", fields: [senderId], references: [id]) // Relation to User (sender)
+//  chatRoomId Int      // ID of the chat room where the message belongs
+//  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id]) // Relation to ChatRoom
+//  read       Boolean  @default(false)  // Message read status
+//
+//  // Additional Indices
+//  @@index([senderId, chatRoomId])  // Adding index for optimized querying
+//}

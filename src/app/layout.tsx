@@ -1,5 +1,5 @@
 "use client";
-import type { Metadata } from "next";
+// import type { Metadata } from "next";
 import "./globals.css";
 import 'react-toastify/dist/ReactToastify.css';
 import { SessionProvider } from "next-auth/react";

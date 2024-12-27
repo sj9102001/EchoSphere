@@ -3,6 +3,28 @@ import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
+
+export async function GET(req: NextRequest) {
+  const url = await new URL(req.url);  // Parse the URL from the request
+  const search = url.searchParams.get('name'); // Get the 'search' parameter from the query string
+
+  if (!search) {
+    return new Response(JSON.stringify([])); // Return an empty array if no search parameter is provided
+  }
+
+  const users = await prisma.user.findMany({
+    where: {
+      name: {
+        contains: search, // Search users by name
+        mode: 'insensitive', // Case insensitive
+      },
+    },
+  });
+
+  return new Response(JSON.stringify(users));
+}
+
+
 export async function POST(request: NextRequest) {
   try {
     const payloadBody = await request.json();
