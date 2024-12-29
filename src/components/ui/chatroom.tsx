@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { database } from '@/config'; 
 import { ref, onChildChanged, onChildAdded,onChildRemoved, get, off, query, orderByChild, equalTo, DataSnapshot } from 'firebase/database'; 
 import { AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai'; // Add icons for edit and delete
-import ParticipantModal from '../modals/participants-modal'
+
 export interface ChatMessage {
   id: number;
   sender: string;
@@ -24,7 +24,6 @@ export default function Chatroom({ chatroomId }: ChatroomProps) {
   const [loading, setLoading] = useState(true);
   const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
   const [editedMessage, setEditedMessage] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: session, status } = useSession(); 
 
   useEffect(() => {

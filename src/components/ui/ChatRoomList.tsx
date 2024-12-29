@@ -5,10 +5,9 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react'; // Importing session hook
 import CreateGroupChat from '../modals/CreateGroupChat-modal'; // Import CreateGroupChat modal component
-import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa'; // Icons for creating, editing, and deleting chatrooms
+import {FaSave, FaPlus, FaEdit, FaTrash } from 'react-icons/fa'; // Icons for creating, editing, and deleting chatrooms
 import { database } from '@/config'; // Firebase config import
 import { ref, onValue, off, DataSnapshot } from 'firebase/database'; // Firebase database functions
-
 interface Chatroom {
   id: string;
   name: string;
@@ -179,7 +178,7 @@ const ChatRoomList = () => {
           <FaPlus />
         </button>
       </div>
-
+  
       {loading ? (
         <p>Loading chatrooms...</p>
       ) : error ? (
@@ -188,25 +187,30 @@ const ChatRoomList = () => {
         <ul className="space-y-2">
           {chatrooms.map((chatroom) => (
             <li key={chatroom.id} className="flex items-center justify-between group">
-              <div className="block p-2 bg-gray-700 rounded hover:bg-gray-600 w-full flex items-center justify-between">
-                {editingChatroomId === chatroom.id ? (
-                  <input
-                    type="text"
-                    value={editedName}
-                    onChange={(e) => setEditedName(e.target.value)}
-                    className="bg-gray-600 text-white p-1 rounded"
-                  />
-                ) : (
-                  <span>{chatroom.name}</span>
-                )}
-
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              {/* Container with padding and rounded corners */}
+              <div className="flex justify-between w-full p-2 bg-gray-700 rounded hover:bg-gray-600">
+                {/* Link for name (chatroom name is clickable) */}
+                <Link href={`/chats/${chatroom.id}`} className="flex-grow text-white truncate">
+                  {editingChatroomId === chatroom.id ? (
+                    <input
+                      type="text"
+                      value={editedName}
+                      onChange={(e) => setEditedName(e.target.value)}
+                      className="bg-gray-600 text-white p-1 rounded w-full"
+                    />
+                  ) : (
+                    <span className="text-white">{chatroom.name}</span>
+                  )}
+                </Link>
+  
+                {/* Icons for edit and delete */}
+                <div className="flex gap-2 items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   {editingChatroomId === chatroom.id ? (
                     <button
                       onClick={handleSaveChatroom}
                       className="p-1 text-green-500 hover:text-green-600"
                     >
-                      Save
+                      <FaSave />
                     </button>
                   ) : (
                     <button
@@ -234,7 +238,7 @@ const ChatRoomList = () => {
           ))}
         </ul>
       )}
-
+  
       {/* Create Group Chat Modal */}
       {isModalOpen && <CreateGroupChat onClose={closeModal} />}
     </div>
