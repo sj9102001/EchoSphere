@@ -35,8 +35,15 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      include: {
-        participants: true,
+      select: {
+        id:true,
+        isGroup:true,
+        name:true,
+        participants: {
+          select: {
+            id: true, // Only include participant IDs
+          },
+        },
         messages: {
           take: 1,
           orderBy: {
@@ -45,6 +52,7 @@ export async function GET(request: NextRequest) {
         },
       },
     });
+    // console.log(chatRooms);
     // const chatRoomsRef = ref(database, 'chatRooms');
     // const snapshot = await get(chatRoomsRef);
 
@@ -74,12 +82,12 @@ export async function POST(request: NextRequest) {
 
     const { name, participants } = await request.json();
 
-    if (!name || participants.length === 0) {
+    if (!name) {
       return NextResponse.json({ error: 'Group name and participants are required' }, { status: 400 });
     }
 
     const userId = typeof token.id === 'string' ? parseInt(token.id, 10) : token.id;
-
+ 
     // Ensure the current user is added as a participant
     const allParticipants = [...participants, userId];
 

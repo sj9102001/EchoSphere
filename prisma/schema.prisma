@@ -116,7 +116,6 @@ model ChatRoom {
   messages     Message[] // Relationship to messages
   createdAt    DateTime  @default(now())  // Timestamp when the chat room is created
   isGroup      Boolean   @default(false)  // Indicates if it's a group chat or 1-to-1 chat
-  userIds      Int[]     // Array of user IDs in the chat room (this is handled by the relation)
   name         String?
   // Additional Indices
   @@index([id])

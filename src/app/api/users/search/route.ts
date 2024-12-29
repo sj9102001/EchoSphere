@@ -1,13 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from "next/server";
+import { getToken } from 'next-auth/jwt'; 
 import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest) {
+  const token = await getToken({ req, secret: process.env.SECRET_KEY });
+  if (!token || !token.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const userId = typeof token.id === 'string' ? parseInt(token.id, 10) : token.id;
   const url = await new URL(req.url);  // Parse the URL from the request
   const search = url.searchParams.get('name'); // Get the 'search' parameter from the query string
-
   if (!search) {
     return new Response(JSON.stringify([])); // Return an empty array if no search parameter is provided
   }
@@ -18,8 +24,11 @@ export async function GET(req: NextRequest) {
         contains: search, // Search users by name
         mode: 'insensitive', // Case insensitive
       },
+      id: {
+        not: userId, // Exclude the user with the provided userId
+      },
     },
-  });
+  });  
 
   return new Response(JSON.stringify(users));
 }

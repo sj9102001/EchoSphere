@@ -46,8 +46,8 @@ const CreateGroupChat = ({ onClose }: CreateGroupChatProps) => {
   };
 
   const handleCreateGroup = async () => {
-    if (!groupName.trim() || participants.length === 0) {
-      alert('Please provide a group name and add participants.');
+    if (!groupName.trim()) {
+      alert('Please provide a group name.');
       return;
     }
 

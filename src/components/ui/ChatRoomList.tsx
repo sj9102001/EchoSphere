@@ -40,8 +40,10 @@ const ChatRoomList = () => {
     async function fetchChatrooms() {
       try {
         const res = await fetch('/api/chatrooms');
+        // console.log("res", await res.json());
         if (!res.ok) throw new Error('Failed to fetch chatrooms');
         const data: Chatroom[] = await res.json();
+        // console.log("data",data);
         setChatrooms(data);
       } catch (error) {
         console.error('Error fetching chatrooms:', error);
@@ -57,24 +59,42 @@ const ChatRoomList = () => {
 
     const handleChatroomUpdate = (snapshot: DataSnapshot) => {
       if (snapshot.exists()) {
-        const chatroomData = snapshot.val();
         const updatedChatrooms: Chatroom[] = [];
-
+        const currentUserId = session?.user?.id; // Ensure current user ID is available
+    
+        if (!currentUserId) {
+          console.error('Current user ID is not available');
+          return;
+        }
+    
         snapshot.forEach((childSnapshot) => {
-          updatedChatrooms.push({ id: childSnapshot.key, ...childSnapshot.val() });
-        });
+          const chatroom = { id: childSnapshot.key, ...childSnapshot.val() };
+     // Ensure data type consistency
+     const participants = chatroom.participants.map((participant:number | string) => String(participant));
+     const currentUserIdStr = String(currentUserId);
 
+     // Check if current user ID is in participants
+     if (participants.includes(currentUserIdStr)) {
+       updatedChatrooms.push(chatroom);
+     }
+        });
+    
+        console.log("Updated Chatrooms:", updatedChatrooms);
+    
         // Update chatrooms without duplicates
         setChatrooms((prevChatrooms) => {
           const updatedChatroomIds = updatedChatrooms.map((chatroom) => chatroom.id);
           const filteredPrevChatrooms = prevChatrooms.filter(
             (chatroom) => !updatedChatroomIds.includes(chatroom.id)
           );
-
+    
           return [...filteredPrevChatrooms, ...updatedChatrooms];
         });
+      } else {
+        console.warn("No chatrooms found in the snapshot.");
       }
     };
+    
 
     // Using onValue to listen for all changes
     onValue(chatRoomsRef, handleChatroomUpdate);

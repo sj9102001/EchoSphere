@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react'; 
 import { database } from '@/config'; 
-import { ref, onChildAdded, get, off, query, orderByChild, equalTo, DataSnapshot } from 'firebase/database'; 
+import { ref, onChildChanged, onChildAdded,onChildRemoved, get, off, query, orderByChild, equalTo, DataSnapshot } from 'firebase/database'; 
 import { AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai'; // Add icons for edit and delete
 
 export interface ChatMessage {
@@ -73,22 +73,61 @@ export default function Chatroom({ chatroomId }: ChatroomProps) {
 
         // Update state only if the message isn't already present
         setMessages((prevMessages) => {
-          const isMessageAlreadyPresent = prevMessages.some(
-            (msg) => msg.id === newMessage.id
-          );
-          if (isMessageAlreadyPresent) return prevMessages;
+          const existingMessage = prevMessages.find((msg) => msg.id === newMessage.id);
+          if (existingMessage) {
+              return prevMessages;  // If message exists, don't add it again
+          }
           return [...prevMessages, newMessage];
-        });
+      });
+        
       }
     };
 
-    // Set up listener for new messages in the chatroom
-    onChildAdded(chatroomMessagesRef, handleNewMessage);
+  // Handle updated messages
+  const handleUpdatedMessage = async (snapshot: DataSnapshot) => {
+    if (snapshot.exists()) {
+      const updatedMessageData = snapshot.val();
+      const senderId = updatedMessageData.senderId;
 
-    return () => {
-      off(chatroomMessagesRef);
-    };
-  }, [chatroomId]);
+      const userRef = ref(database, `users/${senderId}`);
+      const userSnapshot = await get(userRef);
+      const userName = userSnapshot.exists() ? userSnapshot.val().name : 'Unknown User';
+
+      const updatedMessage: ChatMessage = {
+        id: updatedMessageData.id,
+        sender: userName,
+        message: updatedMessageData.content,
+        senderId: senderId,
+      };
+
+      setMessages((prevMessages) => {
+        return prevMessages.map((msg) =>
+          msg.id === updatedMessage.id ? { ...msg, message: updatedMessage.message } : msg
+        );
+      });
+    }
+  };
+  const handleDeletedMessage = async (snapshot: DataSnapshot) => {
+    if (snapshot.exists()) {
+      const deletedMessageData = snapshot.val();
+      const deletedMessageId = deletedMessageData.id;
+
+      // Remove deleted message from the state
+      setMessages((prevMessages) => prevMessages.filter((msg) => msg.id !== deletedMessageId));
+    }
+  };
+
+
+  // Set up listeners for new and updated messages
+  const newMessageListener = onChildAdded(chatroomMessagesRef, handleNewMessage);
+  const updatedMessageListener = onChildChanged(chatroomMessagesRef, handleUpdatedMessage);
+  const deletedMessageListener = onChildRemoved(chatroomMessagesRef, handleDeletedMessage);
+  return () => {
+    off(chatroomMessagesRef, 'child_added', handleNewMessage);
+    off(chatroomMessagesRef, 'child_changed', handleUpdatedMessage);
+    off(chatroomMessagesRef, 'child_removed', handleDeletedMessage);
+  };
+}, [chatroomId]); // Dependency array ensures re-run only when chatroomId changes
 
   const sendMessage = async () => {
     if (!newMessage.trim()) return;
@@ -119,14 +158,12 @@ export default function Chatroom({ chatroomId }: ChatroomProps) {
     if (!editedMessage.trim()) return;
 
     try {
-      // Send update request to API
-      const res = await fetch(`/api/chatrooms/${chatroomId}/messages/${messageId}`, {
+      const res=await fetch(`/api/chatrooms/${chatroomId}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
+        headers: { 'Content-Type': 'application/json',
           Authorization: `Bearer ${session?.user?.token}`, 
-        },
-        body: JSON.stringify({ message: editedMessage }),
+         },
+        body: JSON.stringify({ messageId, editedMessage }),
       });
 
       if (!res.ok) throw new Error('Failed to update message');
@@ -148,12 +185,10 @@ export default function Chatroom({ chatroomId }: ChatroomProps) {
   const deleteMessage = async (messageId: number) => {
     try {
       // Send delete request to API
-      const res = await fetch(`/api/chatrooms/${chatroomId}/messages/${messageId}`, {
+      const res = await fetch(`/api/chatrooms/${chatroomId}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.user?.token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId }),
       });
 
       if (!res.ok) throw new Error('Failed to delete message');
@@ -210,11 +245,11 @@ export default function Chatroom({ chatroomId }: ChatroomProps) {
             className="flex-1 p-2 bg-gray-700 text-gray-300 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         ) : (
-          <span className="pl-2">{msg.message}</span>
+          <span className="flex-grow pl-2">{msg.message}</span>
         )}
         {/* Check if the current user is the sender before showing edit/delete icons */}
-        {session?.user?.id === msg.senderId && (
-          <div className="flex gap-2 opacity-0 group-hover:opacity-100">
+        {session?.user.id == msg.senderId && (
+          <div className="absolute right-2 flex gap-2 opacity-0 group-hover:opacity-100">
             <AiOutlineEdit
               onClick={() => {
                 setEditingMessageId(msg.id);
