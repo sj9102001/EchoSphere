@@ -137,10 +137,33 @@ const ChatRoomList = () => {
     }
   };
 
-  const handleDeleteChatroom = (chatroomId: string) => {
-    // Handle the delete functionality here
-    console.log(`Delete chatroom with ID: ${chatroomId}`);
+  const handleDeleteChatroom = async (chatroomId: string) => {
+    // Confirm if the user really wants to delete the chatroom
+    if (window.confirm("Are you sure you want to delete this chatroom?")) {
+      try {
+        const response = await fetch(`/api/chatrooms/`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id: chatroomId}),
+        });
+  
+        if (response.ok) {
+          // Remove the chatroom from the local state to reflect the deletion immediately
+          setChatrooms((prevChatrooms) =>
+            prevChatrooms.filter((chatroom) => chatroom.id !== chatroomId)
+          );
+          console.log(`Chatroom with ID ${chatroomId} has been deleted`);
+        } else {
+          console.error('Failed to delete chatroom');
+        }
+      } catch (error) {
+        console.error('Error deleting chatroom:', error);
+      }
+    }
   };
+  
 
   if (!isClient) return null;
 

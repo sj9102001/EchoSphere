@@ -177,3 +177,61 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
+    if (!token || !token.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await request.json();
+    if (!id) {
+      return NextResponse.json({ error: 'Chatroom ID is required' }, { status: 400 });
+    }
+
+    const userId = typeof token.id === 'string' ? parseInt(token.id, 10) : token.id;
+
+    // Check if the chatroom exists and the user is part of it
+    const chatRoom = await prisma.chatRoom.findUnique({
+      where: { id },
+      include: { participants: true },
+    });
+
+    if (!chatRoom) {
+      return NextResponse.json({ error: 'Chatroom not found' }, { status: 404 });
+    }
+
+    // Ensure the current user is part of the chatroom
+    const isUserParticipant = chatRoom.participants.some((participant) => participant.id == userId);
+    if (!isUserParticipant) {
+      return NextResponse.json({ error: 'You are not a participant of this chatroom' }, { status: 403 });
+    }
+
+    // Remove the user from the participants list in Prisma
+    const updatedChatRoom = await prisma.chatRoom.update({
+      where: { id },
+      data: {
+        participants: {
+          set: chatRoom.participants.filter(participant => participant.id !== userId),  // Remove the user with the given userId
+        },
+      },
+      include: { participants: true },
+    });
+    
+
+    // Update the chat room in Firebase
+    const chatRoomRef = ref(database, `chatRooms/${id}`);
+    await set(chatRoomRef, {
+      id,
+      name: chatRoom.name,
+      participants: updatedChatRoom.participants.map((participant) => participant.id),
+      isGroup: chatRoom.isGroup,
+    });
+
+    return NextResponse.json(updatedChatRoom, { status: 200 });
+  } catch (error) {
+    console.error('Error removing user from chat room:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
