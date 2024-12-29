@@ -91,8 +91,7 @@ export async function POST(request: NextRequest) {
     // Ensure the current user is added as a participant
     const allParticipants = [...participants, userId];
 
-    const chatRoomsRef = ref(database, 'chatRooms');
-    const newChatRoomRef = push(chatRoomsRef);
+
 
     // Prisma: Create a new chat room first
     const chatRoom = await prisma.chatRoom.create({
@@ -104,20 +103,77 @@ export async function POST(request: NextRequest) {
         isGroup: true,
       },
     });
+    const chatRoomsRef = ref(database, `chatRooms/${chatRoom.id}`);
 
-    await set(newChatRoomRef, {
+    await set(chatRoomsRef, {
       id: chatRoom.id, // Use Prisma-generated ID here
       name,
       participants: allParticipants, // Ensure this matches the Prisma model
       isGroup: true,
     });
 
-    if(newChatRoomRef.key){
-      return NextResponse.json({ id: newChatRoomRef.key, name, participants: allParticipants  }, { status: 201 });
+    if(chatRoomsRef.key){
+      return NextResponse.json({ id: chatRoomsRef.key, name, participants: allParticipants  }, { status: 201 });
     }
       return NextResponse.json(chatRoom, { status: 201 });
   } catch (error) {
     console.error('Error creating chat room:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+
+export async function PATCH(request: NextRequest) {
+  try {
+    // Get token for user authentication
+    const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
+    if (!token || !token.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id, name } = await request.json();
+
+    // Validate the input data
+    if (!id || !name) {
+      return NextResponse.json({ error: 'Chatroom ID and new name are required' }, { status: 400 });
+    }
+
+    const userId = typeof token.id === 'string' ? parseInt(token.id, 10) : token.id;
+
+    // Check if the chatroom exists and the user is part of it
+    const chatRoom = await prisma.chatRoom.findUnique({
+      where: { id },
+      include: { participants: true },
+    });
+
+    if (!chatRoom) {
+      return NextResponse.json({ error: 'Chatroom not found' }, { status: 404 });
+    }
+
+    // Ensure the current user is part of the chatroom
+    const isUserParticipant = chatRoom.participants.some((participant) => participant.id == userId);
+    if (!isUserParticipant) {
+      return NextResponse.json({ error: 'You are not a participant of this chatroom' }, { status: 403 });
+    }
+
+    // Update chatroom in Prisma
+    const updatedChatRoom = await prisma.chatRoom.update({
+      where: { id },
+      data: { name },
+    });
+
+    // Update chatroom name in Firebase
+    const chatRoomRef = ref(database, `chatRooms/${id}`);
+    await set(chatRoomRef, {
+      id,
+      name,
+      participants: chatRoom.participants.map((participant) => participant.id),
+      isGroup: chatRoom.isGroup, // Retain the 'isGroup' status if needed
+    });
+
+    return NextResponse.json(updatedChatRoom, { status: 200 });
+  } catch (error) {
+    console.error('Error updating chat room:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -5,9 +5,9 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react'; // Importing session hook
 import CreateGroupChat from '../modals/CreateGroupChat-modal'; // Import CreateGroupChat modal component
-import { FaPlus } from 'react-icons/fa'; // Icon for creating a new group chat
+import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa'; // Icons for creating, editing, and deleting chatrooms
 import { database } from '@/config'; // Firebase config import
-import { ref, onValue, off, DataSnapshot, query, orderByChild, equalTo } from 'firebase/database'; // Firebase database functions
+import { ref, onValue, off, DataSnapshot } from 'firebase/database'; // Firebase database functions
 
 interface Chatroom {
   id: string;
@@ -22,6 +22,8 @@ const ChatRoomList = () => {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
   const [isClient, setIsClient] = useState(false); // To ensure client-side only rendering
+  const [editingChatroomId, setEditingChatroomId] = useState<string | null>(null); // State to track chatroom being edited
+  const [editedName, setEditedName] = useState<string>(''); // State to track the updated name
 
   useEffect(() => {
     // Ensure the component renders only on the client side
@@ -29,8 +31,7 @@ const ChatRoomList = () => {
   }, []);
 
   useEffect(() => {
-    // Check if the user is authenticated before fetching chatrooms
-    if (status === 'loading') return; // Don't do anything while loading session
+    if (status === 'loading') return;
     if (!session) {
       setError('You need to be logged in to view chatrooms.');
       setLoading(false);
@@ -40,10 +41,8 @@ const ChatRoomList = () => {
     async function fetchChatrooms() {
       try {
         const res = await fetch('/api/chatrooms');
-        // console.log("res", await res.json());
         if (!res.ok) throw new Error('Failed to fetch chatrooms');
         const data: Chatroom[] = await res.json();
-        // console.log("data",data);
         setChatrooms(data);
       } catch (error) {
         console.error('Error fetching chatrooms:', error);
@@ -53,7 +52,6 @@ const ChatRoomList = () => {
     }
 
     fetchChatrooms();
-
     // Firebase listener for real-time updates (using onValue for full updates)
     const chatRoomsRef = ref(database, 'chatRooms');
 
@@ -95,22 +93,56 @@ const ChatRoomList = () => {
       }
     };
     
-
-    // Using onValue to listen for all changes
     onValue(chatRoomsRef, handleChatroomUpdate);
 
     return () => {
-      off(chatRoomsRef); // Cleanup listener when component is unmounted
+      off(chatRoomsRef); // Cleanup listener
     };
   }, [session, status]);
 
-  const openModal = () => setIsModalOpen(true); // Open modal
-  const closeModal = () => setIsModalOpen(false); // Close modal
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
-  // Render null during SSR to avoid hydration errors
-  if (!isClient) {
-    return null;
-  }
+  const handleEditChatroom = (chatroomId: string, currentName: string) => {
+    setEditingChatroomId(chatroomId);
+    setEditedName(currentName);
+  };
+
+  const handleSaveChatroom = async () => {
+    if (!editingChatroomId || !editedName) return;
+
+    try {
+      const response = await fetch(`/api/chatrooms`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: editingChatroomId,name: editedName }),
+      });
+
+      if (response.ok) {
+        setChatrooms((prevChatrooms) =>
+          prevChatrooms.map((chatroom) =>
+            chatroom.id === editingChatroomId
+              ? { ...chatroom, name: editedName }
+              : chatroom
+          )
+        );
+        setEditingChatroomId(null); // Reset editing state
+      } else {
+        console.error('Failed to update chatroom');
+      }
+    } catch (error) {
+      console.error('Error updating chatroom:', error);
+    }
+  };
+
+  const handleDeleteChatroom = (chatroomId: string) => {
+    // Handle the delete functionality here
+    console.log(`Delete chatroom with ID: ${chatroomId}`);
+  };
+
+  if (!isClient) return null;
 
   return (
     <div className="space-y-2">
@@ -128,17 +160,53 @@ const ChatRoomList = () => {
       {loading ? (
         <p>Loading chatrooms...</p>
       ) : error ? (
-        <p className="text-red-500">{error}</p> // Display error if user is not logged in
+        <p className="text-red-500">{error}</p>
       ) : (
         <ul className="space-y-2">
           {chatrooms.map((chatroom) => (
-            <li key={chatroom.id}>
-              <Link
-                href={`/chats/${chatroom.id}`}
-                className="block p-2 bg-gray-700 rounded hover:bg-gray-600"
-              >
-                {chatroom.name}
-              </Link>
+            <li key={chatroom.id} className="flex items-center justify-between group">
+              <div className="block p-2 bg-gray-700 rounded hover:bg-gray-600 w-full flex items-center justify-between">
+                {editingChatroomId === chatroom.id ? (
+                  <input
+                    type="text"
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    className="bg-gray-600 text-white p-1 rounded"
+                  />
+                ) : (
+                  <span>{chatroom.name}</span>
+                )}
+
+                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  {editingChatroomId === chatroom.id ? (
+                    <button
+                      onClick={handleSaveChatroom}
+                      className="p-1 text-green-500 hover:text-green-600"
+                    >
+                      Save
+                    </button>
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditChatroom(chatroom.id, chatroom.name);
+                      }}
+                      className="p-1 text-yellow-400 hover:text-yellow-500"
+                    >
+                      <FaEdit />
+                    </button>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteChatroom(chatroom.id);
+                    }}
+                    className="p-1 text-red-500 hover:text-red-600"
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              </div>
             </li>
           ))}
         </ul>
