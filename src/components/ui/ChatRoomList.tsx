@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react'; // Importing session hook
 import CreateGroupChat from '../modals/CreateGroupChat-modal'; // Import CreateGroupChat modal component
 import { FaPlus } from 'react-icons/fa'; // Icon for creating a new group chat
+import { database } from '@/config'; // Firebase config import
+import { ref, onValue, off, DataSnapshot, query, orderByChild, equalTo } from 'firebase/database'; // Firebase database functions
 
 interface Chatroom {
   id: string;
@@ -13,16 +15,18 @@ interface Chatroom {
   participants: string[];
 }
 
-// interface ChatRoomListProps {
-//   chatrooms: Chatroom[];
-// }
-
 const ChatRoomList = () => {
   const [chatrooms, setChatrooms] = useState<Chatroom[]>([]);
   const [loading, setLoading] = useState(true);
   const { data: session, status } = useSession(); // Get session data
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
+  const [isClient, setIsClient] = useState(false); // To ensure client-side only rendering
+
+  useEffect(() => {
+    // Ensure the component renders only on the client side
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     // Check if the user is authenticated before fetching chatrooms
@@ -47,10 +51,46 @@ const ChatRoomList = () => {
     }
 
     fetchChatrooms();
+
+    // Firebase listener for real-time updates (using onValue for full updates)
+    const chatRoomsRef = ref(database, 'chatRooms');
+
+    const handleChatroomUpdate = (snapshot: DataSnapshot) => {
+      if (snapshot.exists()) {
+        const chatroomData = snapshot.val();
+        const updatedChatrooms: Chatroom[] = [];
+
+        snapshot.forEach((childSnapshot) => {
+          updatedChatrooms.push({ id: childSnapshot.key, ...childSnapshot.val() });
+        });
+
+        // Update chatrooms without duplicates
+        setChatrooms((prevChatrooms) => {
+          const updatedChatroomIds = updatedChatrooms.map((chatroom) => chatroom.id);
+          const filteredPrevChatrooms = prevChatrooms.filter(
+            (chatroom) => !updatedChatroomIds.includes(chatroom.id)
+          );
+
+          return [...filteredPrevChatrooms, ...updatedChatrooms];
+        });
+      }
+    };
+
+    // Using onValue to listen for all changes
+    onValue(chatRoomsRef, handleChatroomUpdate);
+
+    return () => {
+      off(chatRoomsRef); // Cleanup listener when component is unmounted
+    };
   }, [session, status]);
 
   const openModal = () => setIsModalOpen(true); // Open modal
   const closeModal = () => setIsModalOpen(false); // Close modal
+
+  // Render null during SSR to avoid hydration errors
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <div className="space-y-2">

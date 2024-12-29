@@ -1,20 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt'; // Assuming you use next-auth for JWT
-import prisma from '@/lib/prisma'; // Your Prisma client
+import { getToken } from 'next-auth/jwt'; 
+import {database} from '@/config';
+import { PrismaClient } from '@prisma/client';
+import { ref, set, push } from 'firebase/database';
+const prisma = new PrismaClient();
 
 // GET /api/chatrooms/:chatroomId - Fetch messages for a chatroom
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = await params;
-
-  // Extract the token from the request headers
   const token = await getToken({ req, secret: process.env.SECRET_KEY });
-
-  // Check if the token is valid (authenticated user)
   if (!token) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
+    const chatRoomName = await prisma.chatRoom.findUnique({
+      where: { id: parseInt(id, 10) },
+      select: { name: true },
+    });
     const messages = await prisma.message.findMany({
       where: { chatRoomId: parseInt(id, 10) },
       orderBy: { createdAt: 'asc' },
@@ -27,9 +30,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       id: message.id,
       sender: message.sender.name,
       message: message.content,
+      senderId: message.senderId,
     }));
 
-    return NextResponse.json(formattedMessages);
+    return NextResponse.json({
+      chatRoomName: chatRoomName,
+      messages: formattedMessages,
+    });
   } catch (error) {
     console.error('Error fetching chatroom messages:', error);
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
@@ -76,6 +83,19 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       },
     });
 
+    // Upload the message to Firebase Realtime Database
+    const messageRef = ref(database, 'messages');
+    const newMessageRef = push(messageRef);
+    const firebaseMessage = {
+      id: newMessage.id, // Use the Firebase generated ID
+      content: message,
+      senderId: senderId,
+      chatRoomId: parseInt(id, 10),
+      read: false, // Assuming the message is unread when sent
+    };
+
+    await set(newMessageRef,firebaseMessage); // Save the message
+
     return NextResponse.json({
       id: newMessage.id,
       sender: newMessage.sender.name,
@@ -86,3 +106,4 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
   }
 }
+
