@@ -37,7 +37,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     createPostModalChange,
 } = React.useContext(ModalContext);
   if (!session) return <div></div>;
-  console.log(session)
+  // console.log(session)
   const userData = {
     user: {
       name: session.user.name,
@@ -71,7 +71,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         onClick: () => {
           if (status === "authenticated") {
             const userId = session.user.id; // Extract user ID from session
-            console.log("Server Component", userId);
+            // console.log("Server Component", userId);
             router.push(`/profile/${userId}`);
           } else {
             router.push('/auth/login');

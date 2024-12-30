@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { database } from '@/config'; 
 import { ref, onChildChanged, onChildAdded,onChildRemoved, get, off, query, orderByChild, equalTo, DataSnapshot } from 'firebase/database'; 
 import { AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai'; // Add icons for edit and delete
-
+import ParticipantsModal from '@/components/modals/participant-model'
 export interface ChatMessage {
   id: number;
   sender: string;
@@ -24,6 +24,7 @@ export default function Chatroom({ chatroomId }: ChatroomProps) {
   const [loading, setLoading] = useState(true);
   const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
   const [editedMessage, setEditedMessage] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
   const { data: session, status } = useSession(); 
 
   useEffect(() => {
@@ -219,12 +220,19 @@ export default function Chatroom({ chatroomId }: ChatroomProps) {
     );
   }
 
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
   return (
     <div className="h-full flex flex-col bg-gray-950 text-gray-300">
       <header className="p-4 bg-gray-800 border-b border-gray-700">
-        <h2 className="text-lg font-bold">{chatRoomName}</h2>
+        <h2 className="text-lg font-bold" onClick={openModal}>{chatRoomName}</h2>
       </header>
-
+      <ParticipantsModal 
+        isOpen={isModalOpen} 
+        onClose={closeModal} 
+        chatroomId={chatroomId} 
+      />
       <main className="flex-1 p-4 overflow-y-auto">
         {loading ? (
           <p>Loading messages...</p>

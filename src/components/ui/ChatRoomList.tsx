@@ -5,9 +5,10 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react'; // Importing session hook
 import CreateGroupChat from '../modals/CreateGroupChat-modal'; // Import CreateGroupChat modal component
-import {FaSave, FaPlus, FaEdit, FaTrash } from 'react-icons/fa'; // Icons for creating, editing, and deleting chatrooms
+import {FaUserPlus, FaSave, FaPlus, FaEdit, FaTrash } from 'react-icons/fa'; // Icons for creating, editing, and deleting chatrooms
 import { database } from '@/config'; // Firebase config import
 import { ref, onValue, off, DataSnapshot } from 'firebase/database'; // Firebase database functions
+import AddParticipantModal from '../modals/AddParticipantModal'; // Import AddParticipantModal
 interface Chatroom {
   id: string;
   name: string;
@@ -20,6 +21,8 @@ const ChatRoomList = () => {
   const { data: session, status } = useSession(); // Get session data
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
+  const [isAddParticipantModalOpen, setIsAddParticipantModalOpen] = useState(false);
+  const [selectedChatroomId, setSelectedChatroomId] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false); // To ensure client-side only rendering
   const [editingChatroomId, setEditingChatroomId] = useState<string | null>(null); // State to track chatroom being edited
   const [editedName, setEditedName] = useState<string>(''); // State to track the updated name
@@ -101,6 +104,15 @@ const ChatRoomList = () => {
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+  const openAddParticipantModal = (chatroomId: string) => {
+    setSelectedChatroomId(chatroomId);
+    setIsAddParticipantModalOpen(true);
+  };
+  const closeAddParticipantModal = () => setIsAddParticipantModalOpen(false);
+  // const handleCloseModal = () => {
+  //   setIsAddParticipantModalOpen(false); // Close the AddParticipantModal
+  //   setSelectedChatroomId(null); // Reset the selectedChatroomId
+  // };
 
   const handleEditChatroom = (chatroomId: string, currentName: string) => {
     setEditingChatroomId(chatroomId);
@@ -205,6 +217,15 @@ const ChatRoomList = () => {
   
                 {/* Icons for edit and delete */}
                 <div className="flex gap-2 items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openAddParticipantModal(chatroom.id);
+                    }}
+                    className="p-1 text-blue-400 hover:text-blue-500"
+                  >
+                    <FaUserPlus />
+                  </button>
                   {editingChatroomId === chatroom.id ? (
                     <button
                       onClick={handleSaveChatroom}
@@ -238,9 +259,16 @@ const ChatRoomList = () => {
           ))}
         </ul>
       )}
-  
-      {/* Create Group Chat Modal */}
+
       {isModalOpen && <CreateGroupChat onClose={closeModal} />}
+      {isAddParticipantModalOpen && 
+        selectedChatroomId && (
+          <AddParticipantModal 
+            onClose={closeAddParticipantModal} 
+            chatroomId={selectedChatroomId} 
+          />
+        )
+      }
     </div>
   );
 };
