@@ -74,6 +74,10 @@ export async function PUT(request: NextRequest) {
 
         const friendRequest = await prisma.friendRequest.findUnique({
             where: { id: requestId },
+            include: {
+                sender: true,  // Include sender data
+                receiver: true  // Include receiver data
+            },
         });
 
         if (!friendRequest) {
@@ -95,7 +99,9 @@ export async function PUT(request: NextRequest) {
             },
         });
 
-        // Create a new chatroom between the two users
+        // Create a new chatroom between the two users with the name as "Sender's name, Receiver's name"
+        const chatRoomName = `${friendRequest.sender.name}, ${friendRequest.receiver.name}`;
+
         await prisma.chatRoom.create({
             data: {
                 participants: {
@@ -104,7 +110,8 @@ export async function PUT(request: NextRequest) {
                         { id: friendRequest.receiverId },
                     ],
                 },
-                isGroup: false
+                isGroup: false,
+                name: chatRoomName,  // Set the chat room name
             },
         });
 
