@@ -104,8 +104,7 @@ export async function PUT(request: NextRequest) {
                         { id: friendRequest.receiverId },
                     ],
                 },
-                isGroup: false, // 1-to-1 chatroom
-                userIds: [friendRequest.senderId, friendRequest.receiverId],
+                isGroup: false
             },
         });
 
