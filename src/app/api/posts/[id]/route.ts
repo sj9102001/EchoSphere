@@ -101,7 +101,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     // }
 
-      const deletedPost = await prisma.post.delete({
+      await prisma.post.delete({
         where: { id: parseInt(id, 10) }
       });
   

@@ -1,7 +1,8 @@
+// app/api/chatrooms/[id]/participants/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt'; 
 import { database } from '@/config'; // Assuming Firebase DB is initialized here
-import { ref, get, set, update } from 'firebase/database';
+import { ref, get, update } from 'firebase/database';
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 

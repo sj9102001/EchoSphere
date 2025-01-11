@@ -1,25 +1,15 @@
+// app/api/chatrooms/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { PrismaClient } from '@prisma/client';
 import {database} from '@/config';
-import { ref, set, push } from 'firebase/database';
-// import { get } from 'firebase/database';
+import { ref, set } from 'firebase/database';
 const prisma = new PrismaClient();
 
-// interface ChatRoom {
-//   id: string;
-//   name: string;
-//   participants: { id: number; name: string }[];
-//   createdAt: string;
-// }
+
 
 export async function GET(request: NextRequest) {
   try {
-    // const records1 = await prisma.user.findMany();
-    // const records2 = await prisma.chatRoom.findMany();
-    // const records3 = await prisma.message.findMany();
-    // console.log(records1,records2,records3);
-
     const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
     if (!token || !token.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -52,18 +42,6 @@ export async function GET(request: NextRequest) {
         },
       },
     });
-    // console.log(chatRooms);
-    // const chatRoomsRef = ref(database, 'chatRooms');
-    // const snapshot = await get(chatRoomsRef);
-
-    // let firebaseChatRooms: ChatRoom[] = []; // Explicitly type the variable as ChatRoom[]    if (snapshot.exists()) {
-    // if (snapshot.exists()) {
-    //   firebaseChatRooms = Object.values(snapshot.val());
-    // }
-
-    // // You can merge Prisma data with Firebase data here if needed
-    // // For now, it returns both Prisma and Firebase chat room data separately
-    // return NextResponse.json({ prismaChatRooms: chatRooms, firebaseChatRooms }, { status: 200 });
     return NextResponse.json( chatRooms , { status: 200 });
   } catch (error) {
     console.error('Error fetching chat rooms:', error);
@@ -90,8 +68,6 @@ export async function POST(request: NextRequest) {
  
     // Ensure the current user is added as a participant
     const allParticipants = [...participants, userId];
-
-
 
     // Prisma: Create a new chat room first
     const chatRoom = await prisma.chatRoom.create({
@@ -121,7 +97,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
-
 
 export async function PATCH(request: NextRequest) {
   try {

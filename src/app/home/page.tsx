@@ -15,8 +15,8 @@ interface PostData {
     name: string
     profilePicture: string | null
   }
-  comments: any[]
-  likes: any[]
+  comments: []
+  likes: []
 }
 
 interface ApiResponse {

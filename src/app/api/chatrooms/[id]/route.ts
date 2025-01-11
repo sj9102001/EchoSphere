@@ -1,3 +1,4 @@
+// app/api/chatrooms/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt'; 
 import {database} from '@/config';
@@ -82,26 +83,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         sender: { select: { name: true } },
       },
     });
-
-    // Upload the message to Firebase Realtime Database
-    // const messageRef = ref(database, 'messages');
-    // const newMessageRef = push(messageRef);
-    // const firebaseMessage = {
-    //   id: newMessage.id, // Use the Firebase generated ID
-    //   content: message,
-    //   senderId: senderId,
-    //   chatRoomId: parseInt(id, 10),
-    //   read: false, // Assuming the message is unread when sent
-    // };
-    // const messageRef = ref(database, `messages/${newMessage.id}`); // Use the Prisma ID as the key
-    // const newMessageRef = push(messageRef);
-    // const firebaseMessage = {
-    //   id: newMessage.id,
-    //   content: message,
-    //   senderId: senderId,
-    //   chatRoomId: parseInt(id, 10),
-    //   read: false, // Assuming the message is unread when sent
-    // };
 
     // await set(newMessageRef,firebaseMessage); // Save the message
     const messageRef = ref(database, `messages/${newMessage.id}`); // Use the Prisma ID as the key

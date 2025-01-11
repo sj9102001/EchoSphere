@@ -16,17 +16,44 @@ import {
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
-const friends = [
-  { id: 1, name: 'Jane Smith', avatar: 'https://github.com/shadcn.png' },
-  { id: 2, name: 'Mike Johnson', avatar: 'https://github.com/shadcn.png' },
-  { id: 3, name: 'Sarah Williams', avatar: 'https://github.com/shadcn.png' },
-];
+interface Friend {
+  id: number;
+  name: string;
+  avatar: string;
+}
 
-const userPosts = [
-  { id: 1, imageUrl: '/placeholder.svg?height=300&width=300', likes: 15, comments: 5 },
-  { id: 2, imageUrl: '/placeholder.svg?height=300&width=300', likes: 20, comments: 8 },
-  { id: 3, imageUrl: '/placeholder.svg?height=300&width=300', likes: 10, comments: 3 },
-];
+
+// const userPosts = [
+//   { id: 1, imageUrl: '/placeholder.svg?height=300&width=300', likes: 15, comments: 5 },
+//   { id: 2, imageUrl: '/placeholder.svg?height=300&width=300', likes: 20, comments: 8 },
+//   { id: 3, imageUrl: '/placeholder.svg?height=300&width=300', likes: 10, comments: 3 },
+// ];
+
+interface PostData {
+  id: number;
+  content: string;
+  createdAt: Date;
+  mediaUrl: string | null;
+  user: {
+    id: number;
+    name: string;
+    profilePicture: string | null;
+  };
+  comments: {
+    id: number;
+    content: string;
+    createdAt: Date;
+    user: {
+      id: number;
+      name: string;
+      profilePicture: string | null;
+    };
+  }[];
+  likes: {
+    userId: number;
+  }[];
+}
+
 
 export default function ProfilePage() {
   const [userData, setUserData] = useState({
@@ -39,7 +66,10 @@ export default function ProfilePage() {
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
   const [isEditing, setIsEditing] = useState(false);
-
+  const [loading, setLoading] = useState(true)
+  const [posts, setPosts] = useState<PostData[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [friends, setFriends] = useState<Friend[]>([]);
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -88,9 +118,49 @@ export default function ProfilePage() {
       setIsEditing(false);
     }
   };
+  useEffect(() => {
+    fetchPosts()
+  }, [])
 
-  if (status === 'loading') {
+  useEffect(() => {
+    fetchFriends();
+  }, [userData.id]);
+
+  const fetchFriends = async () => {
+    try {
+      const response = await fetch(`/api/users/${userData.id}/friends`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch friends');
+      }
+      const data = await response.json();
+      setFriends(data);
+    } catch (error) {
+      console.error('Error fetching friends:', error);
+    }
+  };
+  const fetchPosts = async () => {
+    try {
+      const response = await fetch('/api/posts/user')
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch posts')
+      }
+      const data = await response.json()
+      setPosts(data.data)
+      console.log(data.data);
+      setLoading(false)
+    } catch {
+      setError('Error fetching posts. Please try again later.')
+      setLoading(false)
+    }
+  }
+
+  if (loading || status === 'loading') {
     return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center mt-8 text-red-500">{error}</div>
   }
 
   const isOwnProfile = userData.id && userData.id.toString() === loggedInUserId?.toString();
@@ -151,7 +221,7 @@ export default function ProfilePage() {
                         </DialogHeader>
                         <div className="space-y-4">
                           {friends.map((friend) => (
-                            <div key={friend.id} className="flex items-center gap-4">
+                            <div key={friend.id} className="flex items-center gap-4 text-white">
                               <Avatar>
                                 <AvatarImage src={friend.avatar} alt={friend.name} />
                                 <AvatarFallback>{friend.name[0]}</AvatarFallback>
@@ -179,25 +249,31 @@ export default function ProfilePage() {
         <div className="space-y-4">
           <h2 className="text-xl text-white font-semibold">My Posts</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {userPosts.map((post) => (
+            {posts.map((post) => (
               <div
                 key={post.id}
                 className="relative aspect-square rounded-xl overflow-hidden group bg-card"
               >
-                <img
-                  src={post.imageUrl}
-                  alt={`Post ${post.id}`}
-                  className="object-cover w-full h-full transition-transform group-hover:scale-105"
-                />
+                {post.mediaUrl ? (
+                  <img
+                    src={post.mediaUrl}
+                    alt={`Post by ${post.user.name}`}
+                    className="object-cover w-full h-full transition-transform group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-700">
+                    <p className="text-white">No Media</p>
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <div className="flex gap-6 text-white">
                     <span className="flex items-center gap-2">
                       <Heart className="h-6 w-6" />
-                      {post.likes}
+                      {post.likes.length}
                     </span>
                     <span className="flex items-center gap-2">
                       <MessageCircle className="h-6 w-6" />
-                      {post.comments}
+                      {post.comments.length}
                     </span>
                   </div>
                 </div>
