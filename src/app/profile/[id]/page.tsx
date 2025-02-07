@@ -264,6 +264,7 @@ export default function ProfilePage() {
                   <Image
                     src={post.mediaUrl}
                     alt={`Post by ${post.user.name}`}
+                    fill
                     className="object-cover w-full h-full transition-transform group-hover:scale-105"
                   />
                 ) : (
