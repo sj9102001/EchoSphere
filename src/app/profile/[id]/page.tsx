@@ -229,6 +229,9 @@ export default function ProfilePage() {
                               <span className="font-medium">{friend.name}</span>
                             </div>
                           ))}
+                          {
+                            friends.length === 0 && <p className="text-white">No friends found</p>
+                          }
                         </div>
                       </DialogContent>
                     </Dialog>
