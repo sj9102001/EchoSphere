@@ -1,5 +1,5 @@
 'use client';
-
+import Image from "next/image";
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -123,21 +123,24 @@ export default function ProfilePage() {
   }, [])
 
   useEffect(() => {
-    fetchFriends();
-  }, [userData.id]);
-
-  const fetchFriends = async () => {
-    try {
-      const response = await fetch(`/api/users/${userData.id}/friends`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch friends');
+    const fetchFriends = async () => {
+      try {
+        const response = await fetch(`/api/users/${userData.id}/friends`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch friends');
+        }
+        const data = await response.json();
+        setFriends(data);
+      } catch (error) {
+        console.error('Error fetching friends:', error);
       }
-      const data = await response.json();
-      setFriends(data);
-    } catch (error) {
-      console.error('Error fetching friends:', error);
+    };
+  
+    if (userData.id) {
+      fetchFriends();
     }
-  };
+  }, [userData.id]); // ✅ Only depends on userData.id
+  
   const fetchPosts = async () => {
     try {
       const response = await fetch('/api/posts/user')
@@ -258,7 +261,7 @@ export default function ProfilePage() {
                 className="relative aspect-square rounded-xl overflow-hidden group bg-card"
               >
                 {post.mediaUrl ? (
-                  <img
+                  <Image
                     src={post.mediaUrl}
                     alt={`Post by ${post.user.name}`}
                     className="object-cover w-full h-full transition-transform group-hover:scale-105"
