@@ -12,7 +12,9 @@ export async function POST(
 ) {
   try {
     // Convert the route parameter id into a number (Post ID)
-    const postId = await parseInt(params.id, 10);
+    const { id } = await params;
+
+    const postId = parseInt(id, 10);
 
     const token = await getToken({ req: request, secret: process.env.SECRET_KEY });
     if (!token || !token.id) {

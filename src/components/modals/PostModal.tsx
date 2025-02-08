@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Dialog,
@@ -10,6 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Heart, MessageCircle } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 interface Comment {
   id: number;
@@ -45,15 +46,74 @@ interface PostModalProps {
    * For example, a thumbnail div containing the post image.
    */
   trigger: React.ReactNode;
+  /**
+   * (Optional) Indicates if the current user has already liked this post.
+   * If not provided, we compute it from the post.likes array.
+   */
+  likedByUser?: boolean;
 }
 
-const PostModal: React.FC<PostModalProps> = ({ post, trigger }) => {
+export default function PostModal({
+  post,
+  trigger,
+  likedByUser = false,
+}: PostModalProps) {
+  const { data: session } = useSession();
+  const currentUserId = session?.user?.id;
+
+  // Compute initial liked state:
+  // Use the likedByUser prop if provided; otherwise, check if currentUserId exists in post.likes.
+  const initialLiked =
+    likedByUser ||
+    (currentUserId
+      ? post.likes.some(
+          (like) => Number(like.userId) === Number(currentUserId)
+        )
+      : false);
+
+  const [liked, setLiked] = useState(initialLiked);
+  const [likesCount, setLikesCount] = useState(post.likes.length);
+
+  // Optional: update liked state if session or post.likes changes.
+  useEffect(() => {
+    if (currentUserId) {
+      const newLiked = post.likes.some(
+        (like) => Number(like.userId) === Number(currentUserId)
+      );
+      setLiked(newLiked);
+    }
+  }, [currentUserId, post.likes]);
+
+  const toggleLike = async () => {
+    try {
+      const response = await fetch(`/api/posts/${post.id}/like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      // Define the expected type for the JSON response.
+      type ToggleLikeResponse = {
+        message: "Liked" | "Unliked";
+      };
+
+      // Parse the response and assert its type.
+      const data = (await response.json()) as ToggleLikeResponse;
+
+      if (data.message === "Liked") {
+        setLiked(true);
+        setLikesCount((prev) => prev + 1);
+      } else if (data.message === "Unliked") {
+        setLiked(false);
+        setLikesCount((prev) => prev - 1);
+      }
+    } catch (error) {
+      console.error("Error toggling like:", error);
+    }
+  };
+
   return (
     <Dialog>
-      {/* Wrap the trigger element with DialogTrigger */}
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-
-      {/* Added a greyish background (bg-gray-800) to suit the dark theme */}
       <DialogContent className="w-full max-w-4xl p-0 bg-gray-800">
         <div className="flex flex-col md:flex-row">
           {/* Left Side: Post Image */}
@@ -63,7 +123,7 @@ const PostModal: React.FC<PostModalProps> = ({ post, trigger }) => {
                 src={post.mediaUrl}
                 alt={`Post by ${post.user.name}`}
                 fill
-                className="object-contain" // Changed from object-cover to object-contain
+                className="object-contain"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gray-700">
@@ -80,8 +140,21 @@ const PostModal: React.FC<PostModalProps> = ({ post, trigger }) => {
             </div>
             {/* Likes */}
             <div className="flex items-center mb-4">
-              <Heart className="h-6 w-6 text-red-500 mr-2" />
-              <span className="text-white">{post.likes.length} likes</span>
+              {/* Clickable heart icon */}
+              <span onClick={toggleLike} className="cursor-pointer">
+                {liked ? (
+                  <Heart
+                    fill="currentColor"
+                    className="h-6 w-6 text-red-500 mr-2"
+                  />
+                ) : (
+                  <Heart
+                    fill="none"
+                    className="h-6 w-6 text-red-500 mr-2"
+                  />
+                )}
+              </span>
+              <span className="text-white">{likesCount} likes</span>
             </div>
             {/* Comments Section */}
             <div className="flex-1 overflow-y-auto">
@@ -93,7 +166,6 @@ const PostModal: React.FC<PostModalProps> = ({ post, trigger }) => {
                   </DialogTitle>
                 </div>
               </DialogHeader>
-
               {post.comments.length > 0 ? (
                 post.comments.map((comment) => (
                   <div key={comment.id} className="mb-2">
@@ -114,6 +186,4 @@ const PostModal: React.FC<PostModalProps> = ({ post, trigger }) => {
       </DialogContent>
     </Dialog>
   );
-};
-
-export default PostModal;
+}

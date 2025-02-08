@@ -269,42 +269,56 @@ export default function ProfilePage() {
         <div className="space-y-4">
           <h2 className="text-xl text-white font-semibold">My Posts</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {posts.map((post) => (
-              <PostModal
-                key={post.id}
-                post={post}
-                // Use the post thumbnail as the trigger to open the modal
-                trigger={
-                  <div className="relative aspect-square rounded-xl overflow-hidden group bg-card cursor-pointer">
-                    {post.mediaUrl ? (
-                      <Image
-                        src={post.mediaUrl}
-                        alt={`Post by ${post.user.name}`}
-                        fill
-                        className="object-contain w-full h-full transition-transform group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-700">
-                        <p className="text-white">No Media</p>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <div className="flex gap-6 text-white">
-                        <span className="flex items-center gap-2">
-                          <Heart className="h-6 w-6" />
-                          {post.likes.length}
-                        </span>
-                        <span className="flex items-center gap-2">
-                          {/* You can include an icon for comments here */}
-                          <MessageCircle className="h-6 w-6" />
-                          <span>{post.comments.length}</span>
-                        </span>
+            {posts.map((post) => {
+              // Determine if the logged-in user has liked this post
+              const likedByUser = post.likes.some(
+                (like) => Number(like.userId) === Number(loggedInUserId)
+              );
+              return (
+                <PostModal
+                  key={post.id}
+                  post={post}
+                  trigger={
+                    <div className="relative aspect-square rounded-xl overflow-hidden group bg-card cursor-pointer">
+                      {post.mediaUrl ? (
+                        <Image
+                          src={post.mediaUrl}
+                          alt={`Post by ${post.user.name}`}
+                          fill
+                          className="object-contain w-full h-full transition-transform group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-700">
+                          <p className="text-white">No Media</p>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="flex gap-6 text-white">
+                          <span className="flex items-center gap-2">
+                            {likedByUser ? (
+                              <Heart
+                                fill="currentColor"
+                                className="h-6 w-6 text-red-500"
+                              />
+                            ) : (
+                              <Heart
+                                fill="none"
+                                className="h-6 w-6 text-red-500"
+                              />
+                            )}
+                            {post.likes.length}
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <MessageCircle className="h-6 w-6" />
+                            <span>{post.comments.length}</span>
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                }
-              />
-            ))}
+                  }
+                />
+              );
+            })}
           </div>
         </div>
       </div>
