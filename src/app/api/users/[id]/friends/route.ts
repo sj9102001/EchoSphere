@@ -1,43 +1,43 @@
 // File: app/api/users/[id]/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
-import {PrismaClient} from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+
 
 const prisma = new PrismaClient();
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   const { id } = await params;
-    console.log('id', id)
+  const userId = parseInt(id, 10);
+
   try {
-    const getFriendName = async (userId: number) => {
-        const friend = await prisma.friend.findFirst({
-          where: {
-            OR: [
-              { user1Id: userId },
-              { user2Id: userId }
-            ]
-          },
-          select: {
-            user1Id: true,
-            user2Id: true,
-            user1: { select: { name: true } },
-            user2: { select: { name: true } }
-          }
-        });
-      
-        if (!friend) {
-          return null; // No friend found
-        }
-      
-        return friend.user1Id === userId ? friend.user2.name : friend.user1.name;
-      };
-      
+    // Fetch all friend relationships where the user is involved
+    const friends = await prisma.friend.findMany({
+      where: {
+        OR: [
+          { user1Id: userId },
+          { user2Id: userId }
+        ]
+      },
+      select: {
+        user1Id: true,
+        user2Id: true,
+        user1: { select: { id: true, name: true, profilePicture: true } },
+        user2: { select: { id: true, name: true, profilePicture: true } }
+      }
+    });
 
-    if (!getFriendName) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+    // Map the friend relationships to return the friend details
+    // For each friend relationship, if the given user is user1 then return user2; otherwise, return user1.
+    const friendList = friends.map(friend =>
+      friend.user1Id === userId ? friend.user2 : friend.user1
+    );
 
-    return NextResponse.json(getFriendName);
+    return NextResponse.json({ friends: friendList });
   } catch (error) {
-    console.log(error);
-    console.log('id', id)
+    console.error("Error fetching friends:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Users, Heart, MessageCircle } from "lucide-react";
+import { Users, Heart, MessageCircle, Pen } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -128,7 +128,7 @@ export default function ProfilePage() {
           throw new Error("Failed to fetch friends");
         }
         const data = await response.json();
-        setFriends(data);
+        setFriends(data.friends);
       } catch (error) {
         console.error("Error fetching friends:", error);
       }
@@ -213,8 +213,10 @@ export default function ProfilePage() {
                 ) : (
                   <>
                     <Button onClick={() => setIsEditing(true)}>
+                      <Pen className="mr-2 h-4 w-4" />
                       Edit Profile
                     </Button>
+
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button className="text-white" variant="outline">
@@ -294,6 +296,7 @@ export default function ProfilePage() {
                         </span>
                         <span className="flex items-center gap-2">
                           {/* You can include an icon for comments here */}
+                          <MessageCircle className="h-6 w-6" />
                           <span>{post.comments.length}</span>
                         </span>
                       </div>

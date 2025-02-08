@@ -96,35 +96,19 @@ model FriendRequest {
   // Additional Indices
   @@unique([senderId, receiverId])
 }
-model User {
-  id                Int         @id @default(autoincrement())
-  name              String
-  email             String      @unique
-  password          String
-  createdAt         DateTime    @default(now())
-  bio               String?
-  
-  // Additional fields for profile
-  profilePicture String? // URL of profile picture
-  coverPhoto     String? // URL of cover photo
 
-  // Messaging System
-  messagesSent      Message[]   @relation("SentMessages")
-  // messagesReceived  Message[]   @relation("ReceivedMessages")
+model Friend {
+  id        Int      @id @default(autoincrement())
+  user1     User     @relation("User1Friends", fields: [user1Id], references: [id])
+  user1Id   Int
+  user2     User     @relation("User2Friends", fields: [user2Id], references: [id])
+  user2Id   Int
+  createdAt DateTime @default(now())
 
-  // Other fields and relations
-  sentRequests      FriendRequest[] @relation("SentRequests")
-  receivedRequests  FriendRequest[] @relation("ReceivedRequests")
-  
-  posts             Post[]
-  postLikes         PostLike[]   @relation("UserPostLikes")
-  comments          Comment[]    @relation("UserComments")
-  chatRooms         ChatRoom[]   @relation("ChatParticipants")
-  user1Friends      Friend[]     @relation("User1Friends")
-  user2Friends      Friend[]     @relation("User2Friends")
-
-  @@index([email])
+  // Additional Indices
+  @@unique([user1Id, user2Id])
 }
+
 
 model ChatRoom {
   id           Int       @id @default(autoincrement())

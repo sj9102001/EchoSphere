@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Heart } from "lucide-react";
+import { Heart, MessageCircle } from "lucide-react";
 
 interface Comment {
   id: number;
@@ -86,10 +86,14 @@ const PostModal: React.FC<PostModalProps> = ({ post, trigger }) => {
             {/* Comments Section */}
             <div className="flex-1 overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-lg font-semibold mb-2 text-white">
-                  Comments
-                </DialogTitle>
+                <div className="flex items-center">
+                  <MessageCircle className="h-6 w-6 text-red-500 mr-2" />
+                  <DialogTitle className="text-lg font-semibold text-white">
+                    Comments
+                  </DialogTitle>
+                </div>
               </DialogHeader>
+
               {post.comments.length > 0 ? (
                 post.comments.map((comment) => (
                   <div key={comment.id} className="mb-2">
