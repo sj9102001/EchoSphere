@@ -42,12 +42,15 @@ export async function POST(
 
     // Create a new comment for the post.
     const comment = await prisma.comment.create({
-      data: {
-        content,
-        postId,
-        userId,
-      },
-    });
+        data: {
+          content,
+          postId,
+          userId,
+        },
+        include: {
+          user: true, // Include user relation so comment.user is populated.
+        },
+      });
 
     return NextResponse.json({ message: "Comment added", comment });
   } catch (error) {
