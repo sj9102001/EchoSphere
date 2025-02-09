@@ -16,7 +16,7 @@ interface PostData {
     name: string
     profilePicture: string | null
   }
-  comments: []
+  comments: Comment[]
   likes: []
 }
 interface Comment {
@@ -98,14 +98,7 @@ export default function ExplorePage() {
                 profilePicture: post.user.profilePicture,
               },
               // Ensure each comment has a defined user object
-              comments: post.comments.map((comment: Comment) => ({
-                ...comment,
-                user: comment.user ?? {
-                  id: 0,
-                  name: "Unknown",
-                  profilePicture: null,
-                },
-              })),
+              comments: post.comments,
               likes: post.likes,
             }}
             // Use the Post component as the trigger.
