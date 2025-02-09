@@ -24,7 +24,9 @@ export function Post({ id, title, content, createdAt, mediaUrl, user, comments, 
     const [likeCount, setLikeCount] = useState(likes.length)
     const [isLiked, setIsLiked] = useState(false)
 
-    const handleLike = () => {
+    const handleLike = (e: React.MouseEvent<HTMLButtonElement>) => {
+        // Prevent click events from propagating to the parent (which might open the modal)
+        e.stopPropagation()
         onLike(id)
         if (isLiked) {
             setLikeCount(likeCount - 1)
@@ -35,13 +37,14 @@ export function Post({ id, title, content, createdAt, mediaUrl, user, comments, 
     }
 
     return (
-        <div className="bg-card border border-white p-4 text-white rounded-lg shadow-md overflow-hidden">
+        <div className="bg-card border border-white p-4 text-white rounded-lg shadow-md overflow-hidden cursor-pointer transition hover:shadow-xl">
             <Image
                 src={mediaUrl}
                 alt={title}
                 width={400}
                 height={300}
-                className="w-full h-48 object-cover"
+                // Use object-contain to make the full image fit within the frame
+                className="w-full h-48 object-contain"
             />
             <div className="p-4">
                 <div className="flex items-center mb-2">
@@ -54,24 +57,26 @@ export function Post({ id, title, content, createdAt, mediaUrl, user, comments, 
                 <h2 className="text-xl font-semibold mb-2">{title}</h2>
                 <p className="text-muted-foreground mb-4">{content}</p>
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center justify-between space-x-4">
-                        <div className="flex items-center space-x-4">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className={`flex hover:bg-red-700 items-center ${isLiked ? 'bg-red-500' : ''}`}
-                                onClick={handleLike}
-                            >
-                                <Heart className="mr-1 h-4 w-4" />
-                                <span>{likeCount}</span>
-                            </Button>
-                            <div className="flex items-center text-muted-foreground">
-                                <MessageCircle className="mr-1 h-4 w-4" />
-                                <span>{comments.length} Comments</span>
-                            </div>
+                    <div className="flex items-center space-x-4">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className={`flex items-center hover:bg-red-700 transition ${
+                                isLiked ? 'bg-red-500' : ''
+                            }`}
+                            onClick={handleLike}
+                        >
+                            <Heart className="mr-1 h-4 w-4" />
+                            <span>{likeCount}</span>
+                        </Button>
+                        <div className="flex items-center text-muted-foreground">
+                            <MessageCircle className="mr-1 h-4 w-4" />
+                            <span>{comments.length} Comments</span>
                         </div>
-                        <span>Uploaded: {createdAt.getDate()}/{createdAt.getMonth() + 1}/{createdAt.getFullYear()}</span>
                     </div>
+                    <span>
+                        Uploaded: {createdAt.getDate()}/{createdAt.getMonth() + 1}/{createdAt.getFullYear()}
+                    </span>
                 </div>
             </div>
         </div>

@@ -2,6 +2,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import PostModal from '@/components/modals/PostModal'
 import { Post } from './Post'
 
 interface PostData {
@@ -18,7 +19,16 @@ interface PostData {
   comments: []
   likes: []
 }
-
+interface Comment {
+  id: number
+  content: string
+  createdAt: Date
+  user: {
+    id: number
+    name: string
+    profilePicture: string | null
+  }
+}
 interface ApiResponse {
   data: PostData[]
   meta: {
@@ -73,17 +83,47 @@ export default function ExplorePage() {
       <h1 className="text-3xl font-bold mb-6">Explore Posts</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {posts.map((post) => (
-          <Post
+          <PostModal
             key={post.id}
-            id={post.id}
-            title={post.title}
-            content={post.content}
-            mediaUrl={post.mediaUrl || '/placeholder.svg?height=300&width=400'}
-            createdAt={new Date(post.createdAt)}
-            user={post.user}
-            comments={post.comments}
-            likes={post.likes}
-            onLike={handleLike}
+            // Pass the post data required by PostModal.
+            post={{
+              id: post.id,
+              content: post.content, // PostModal uses "content" (ignoring title)
+              createdAt: post.createdAt,
+              mediaUrl: post.mediaUrl,
+              // Convert user id from string to number for PostModal
+              user: {
+                id: Number(post.user.id),
+                name: post.user.name,
+                profilePicture: post.user.profilePicture,
+              },
+              // Ensure each comment has a defined user object
+              comments: post.comments.map((comment: Comment) => ({
+                ...comment,
+                user: comment.user ?? {
+                  id: 0,
+                  name: "Unknown",
+                  profilePicture: null,
+                },
+              })),
+              likes: post.likes,
+            }}
+            // Use the Post component as the trigger.
+            trigger={
+              <div>
+                <Post
+                  id={post.id}
+                  title={post.title}
+                  content={post.content}
+                  mediaUrl={post.mediaUrl || '/placeholder.svg?height=300&width=400'}
+                  createdAt={new Date(post.createdAt)}
+                  user={post.user}
+                  comments={post.comments}
+                  likes={post.likes}
+                  onLike={handleLike}
+                />
+              </div>
+            }
           />
         ))}
       </div>
