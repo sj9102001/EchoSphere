@@ -33,12 +33,16 @@ const NewsPage = () => {
         } else {
           throw new Error("Invalid response format");
         }
-      } catch (error) {
+      } catch (error: unknown) {
+      if (error instanceof Error) {
         setError(error.message);
-      } finally {
-        setLoading(false);
+      } else {
+        setError("An unexpected error occurred");
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
 
     fetchNews();
   }, []);
