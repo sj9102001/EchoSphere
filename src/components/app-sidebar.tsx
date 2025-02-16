@@ -9,6 +9,7 @@ PlusIcon,
 SearchIcon,
   User,
   UserIcon,
+  Newspaper,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -78,6 +79,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           }
         },
         icon: UserIcon,
+      },
+      {
+        title: "News", // ✅ Added News Page
+        onClick: () => {
+          router.push("/news");
+        },
+        icon: Newspaper,
       },
     ],  
     navSecondary: [],
