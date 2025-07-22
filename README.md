@@ -110,7 +110,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-> Built with 💡 and passion by [@sj9102001] (https://github.com/sj9102001)
+> Built with 💡 and passion by [@sj9102001] (https://github.com/sj9102001) [@Sidarth-Roy] (https://github.com/Sidarth-Roy)
 
-```
+
 
